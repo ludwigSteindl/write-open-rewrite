@@ -26,7 +26,7 @@ import static org.openrewrite.java.Assertions.java;
 class ChangeTypeTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new ChangeType("java.util.ArrayList", "java.util.List", null))
+        spec.recipe(new ChangeType("java.util.ArrayList", "java.util.LinkedList", false))
           .parser(JavaParser.fromJavaVersion());
     }
 
@@ -41,19 +41,43 @@ class ChangeTypeTest implements RewriteTest {
                             
               class MyTest {
                 void testFoo() {
-                    ArrayList<Integer> values = new ArrayList<>(List.of(1,2,3));
+                    ArrayList<Integer> values = new java.util.ArrayList<>(List.of(1,2,3));
                     values.forEach(v->System.out.println(v));
                 }
               }
               """,
             """
+              import java.util.LinkedList;
               import java.util.List;
                             
               class MyTest {
                 void testFoo() {
-                    List<Integer> values = new List<>(List.of(1,2,3));
+                    LinkedList<Integer> values = new java.util.LinkedList<>(List.of(1,2,3));
                     values.forEach(v->System.out.println(v));
                 }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void changeTypeDefinition() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              package java.util;
+
+              class ArrayList {
+                void doSomething() {}
+              }
+              """,
+            """
+              package java.util;
+
+              class LinkedList {
+                void doSomething() {}
               }
               """
           )

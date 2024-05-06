@@ -151,7 +151,78 @@ public class BinaryProxyToWebTest implements RewriteTest {
               """
           )
         );
-    }@DocumentExample
+    }
+
+    @DocumentExample
+    @Test
+    public void whenCallsInAssignmentsWithDifferentVariableNames_thenAddWebForDifferentVariables() {
+        LOG.info("Start Test");
+        rewriteRun(
+          //language=java
+          java(
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
+                      AuMhHostInfoResponseDto ret;
+                      ret = callSvcProxy(req);
+                      AuMhHostInfoResponseDto ret2;
+                      ret2 = callSvcProxy(req);
+                      return ret;
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              """,
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
+                      final boolean useWeb = true;
+                      AuMhHostInfoResponseDto ret;
+                      if (useWeb) {
+                          ret = callSvcWeb(req);
+                      } else {
+                          ret = callSvcProxy(req);
+                      }
+                      AuMhHostInfoResponseDto ret2;
+                      if (useWeb) {
+                          ret2 = callSvcWeb(req);
+                      } else {
+                          ret2 = callSvcProxy(req);
+                      }
+                      return ret;
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              """
+          )
+        );
+    }
+
+
+    @DocumentExample
     @Test
     public void whenCallsWithDifferentVariableNames_thenAddWebForDifferentVariables() {
         LOG.info("Start Test");

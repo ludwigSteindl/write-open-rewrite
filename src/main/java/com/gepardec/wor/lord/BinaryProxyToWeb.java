@@ -51,116 +51,118 @@ public class BinaryProxyToWeb extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+        return new JavaIsoVisitor<>() {
 
             private final JavaTemplate NEW_BOOLEAN = JavaTemplate.builder("final boolean useWeb = true;\n")
                     .contextSensitive()
                     .build();
 
             private final JavaTemplate IF_INITIALIZATION = JavaTemplate.builder(
-                    """
-                    if(useWeb) {
-                        AuMhHostInfoResponseDto #{} = callSvcWeb(req);
-                    } else {
-                        #{any()};
-                    }
-                    """)
+                            """
+                                    if(useWeb) {
+                                        AuMhHostInfoResponseDto #{} = callSvcWeb(req);
+                                    } else {
+                                        #{any()};
+                                    }
+                                    """)
                     .contextSensitive()
                     .build();
             private final JavaTemplate IF_RETURN = JavaTemplate.builder(
-                    """
-                    if(useWeb) {
-                        return callSvcWeb(req);
-                    } else {
-                        #{any()};
-                    }
-                    """)
+                            """
+                                    if(useWeb) {
+                                        return callSvcWeb(req);
+                                    } else {
+                                        #{any()};
+                                    }
+                                    """)
                     .contextSensitive()
                     .build();
             private final JavaTemplate IF_ASSIGNMENT = JavaTemplate.builder(
-                    """
-                    if(useWeb) {
-                        ret = callSvcWeb(req);
-                    } else {
-                        #{any()};
-                    }
-                    """)
+                            """
+                                    if(useWeb) {
+                                        #{} = callSvcWeb(req);
+                                    } else {
+                                        #{any()};
+                                    }
+                                    """)
                     .contextSensitive()
                     .build();
             private final JavaTemplate IF_INVOCATION = JavaTemplate.builder(
-                    """
-                    if(useWeb) {
-                        callSvcWeb(req);
-                    } else {
-                        #{any()};
-                    }
-                    """)
+                            """
+                                    if(useWeb) {
+                                        callSvcWeb(req);
+                                    } else {
+                                        #{any()};
+                                    }
+                                    """)
                     .contextSensitive()
                     .build();
 
 
-                    @Override
-                    public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-                        final J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
+            @Override
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+                final J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
 
-                        List<Statement> statements = m.getBody().getStatements();
-                        String first = statements.get(0) + ";";
+                List<Statement> statements = m.getBody().getStatements();
+                String first = statements.get(0) + ";";
 
-                        if (first.equals(NEW_BOOLEAN.getCode())) {
-                            return m;
-                        }
+                if (first.equals(NEW_BOOLEAN.getCode())) {
+                    return m;
+                }
 
-                        List<?> invocations = statements
-                                .stream()
-                                .filter(t -> t.print(getCursor()).contains(METHOD_NAME))
-                                .toList();
-
-
-                        if (invocations.isEmpty()) {
-                            return m;
-                        }
-
-                        J.MethodDeclaration me = NEW_BOOLEAN.apply(
-                                updateCursor(m),
-                                m.getBody().getCoordinates().firstStatement());
+                List<?> invocations = statements
+                        .stream()
+                        .filter(t -> t.print(getCursor()).contains(METHOD_NAME))
+                        .toList();
 
 
-                        for (Object o : invocations) {
-                            Statement invocation = (Statement) o;
-                            if (invocation instanceof J.VariableDeclarations decl) {
-                                String varName = decl.getVariables().get(0).getName().getSimpleName();
-                                me = IF_INITIALIZATION.apply(
-                                        updateCursor(me),
-                                        decl.getCoordinates().replace(),
-                                        varName,
-                                        invocation);
-                            }
+                if (invocations.isEmpty()) {
+                    return m;
+                }
 
-                            if (invocation instanceof J.Return returnStatement) {
-                                me = IF_RETURN.apply(
-                                        updateCursor(me),
-                                        returnStatement.getCoordinates().replace(),
-                                        invocation);
-                            }
+                J.MethodDeclaration me = NEW_BOOLEAN.apply(
+                        updateCursor(m),
+                        m.getBody().getCoordinates().firstStatement());
 
-                            if (invocation instanceof J.Assignment assignment) {
-                                me = IF_ASSIGNMENT.apply(
-                                        updateCursor(me),
-                                        assignment.getCoordinates().replace(),
-                                        invocation);
-                            }
 
-                            if (invocation instanceof J.MethodInvocation methodInvocation) {
-                                me = IF_INVOCATION.apply(
-                                        updateCursor(me),
-                                        methodInvocation.getCoordinates().replace(),
-                                        invocation);
-                            }
-                        }
-
-                        return me;
+                for (Object o : invocations) {
+                    Statement invocation = (Statement) o;
+                    if (invocation instanceof J.VariableDeclarations decl) {
+                        String varName = decl.getVariables().get(0).getName().getSimpleName();
+                        me = IF_INITIALIZATION.apply(
+                                updateCursor(me),
+                                decl.getCoordinates().replace(),
+                                varName,
+                                invocation);
                     }
 
-                };
+                    if (invocation instanceof J.Return returnStatement) {
+                        me = IF_RETURN.apply(
+                                updateCursor(me),
+                                returnStatement.getCoordinates().replace(),
+                                invocation);
+                    }
+
+                    if (invocation instanceof J.Assignment assignment) {
+                        String varName = assignment.getVariable().toString();
+                        me = IF_ASSIGNMENT.apply(
+                                updateCursor(me),
+                                assignment.getCoordinates().replace(),
+                                varName,
+                                invocation);
+                    }
+
+                    if (invocation instanceof J.MethodInvocation methodInvocation) {
+                        me = IF_INVOCATION.apply(
+                                updateCursor(me),
+                                methodInvocation.getCoordinates().replace(),
+                                invocation);
+                    }
+                }
+
+                return me;
+            }
+
+        };
     }
 }

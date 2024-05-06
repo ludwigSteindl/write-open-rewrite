@@ -15,16 +15,18 @@
  */
 package com.gepardec.wor.lord;
 
-import com.yourorg.AssertEqualsToAssertThat;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.openrewrite.java.Assertions.java;
 
-class BinaryProxyToWebTest implements RewriteTest {
+public class BinaryProxyToWebTest implements RewriteTest {
+
+    private static final Logger LOG = LoggerFactory.getLogger(BinaryProxyToWebTest.class);
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -34,6 +36,8 @@ class BinaryProxyToWebTest implements RewriteTest {
     @DocumentExample
     @Test
     public void twoArgument() {
+
+        LOG.info("Start Test");
         rewriteRun(
           //language=java
           java(

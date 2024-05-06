@@ -26,6 +26,7 @@ import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Statement;
 
+import java.util.Iterator;
 import java.util.List;
 
 @Value
@@ -55,10 +56,40 @@ public class BinaryProxyToWeb extends Recipe {
                     .contextSensitive()
                     .build();
 
-            private final JavaTemplate IF_USE_WEB = JavaTemplate.builder(
+            private final JavaTemplate IF_INITIALIZATION = JavaTemplate.builder(
                     """
                     if(useWeb) {
                         AuMhHostInfoResponseDto ret = callSvcWeb(req);
+                    } else {
+                        #{any()};
+                    }
+                    """)
+                    .contextSensitive()
+                    .build();
+            private final JavaTemplate IF_RETURN = JavaTemplate.builder(
+                    """
+                    if(useWeb) {
+                        return callSvcWeb(req);
+                    } else {
+                        #{any()};
+                    }
+                    """)
+                    .contextSensitive()
+                    .build();
+            private final JavaTemplate IF_ASSIGNMENT = JavaTemplate.builder(
+                    """
+                    if(useWeb) {
+                        ret = callSvcWeb(req);
+                    } else {
+                        #{any()};
+                    }
+                    """)
+                    .contextSensitive()
+                    .build();
+            private final JavaTemplate IF_INVOCATION = JavaTemplate.builder(
+                    """
+                    if(useWeb) {
+                        callSvcWeb(req);
                     } else {
                         #{any()};
                     }
@@ -84,19 +115,47 @@ public class BinaryProxyToWeb extends Recipe {
                                 .toList();
 
 
-                        if (!invocations.isEmpty()) {
-                            J.MethodDeclaration me = NEW_BOOLEAN.apply(
-                                    updateCursor(m),
-                                    m.getBody().getCoordinates().firstStatement());
-
-                            J.VariableDeclarations decl = (J.VariableDeclarations) invocations.get(0);
-                            return IF_USE_WEB.apply(
-                                    updateCursor(me),
-                                    decl.getCoordinates().replace(),
-                                    invocations.get(0));
+                        if (invocations.isEmpty()) {
+                            return m;
                         }
 
-                        return m;
+                        J.MethodDeclaration me = NEW_BOOLEAN.apply(
+                                updateCursor(m),
+                                m.getBody().getCoordinates().firstStatement());
+
+
+                        for (Object o : invocations) {
+                            Statement invocation = (Statement) o;
+                            if (invocation instanceof J.VariableDeclarations decl) {
+                                me = IF_INITIALIZATION.apply(
+                                        updateCursor(me),
+                                        decl.getCoordinates().replace(),
+                                        invocation);
+                            }
+
+                            if (invocation instanceof J.Return returnStatement) {
+                                me = IF_RETURN.apply(
+                                        updateCursor(me),
+                                        returnStatement.getCoordinates().replace(),
+                                        invocation);
+                            }
+
+                            if (invocation instanceof J.Assignment assignment) {
+                                me = IF_ASSIGNMENT.apply(
+                                        updateCursor(me),
+                                        assignment.getCoordinates().replace(),
+                                        invocation);
+                            }
+
+                            if (invocation instanceof J.MethodInvocation methodInvocation) {
+                                me = IF_INVOCATION.apply(
+                                        updateCursor(me),
+                                        methodInvocation.getCoordinates().replace(),
+                                        invocation);
+                            }
+                        }
+
+                        return me;
                     }
 
                 };

@@ -17,6 +17,7 @@ package com.gepardec.wor.lord;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -33,8 +34,6 @@ import java.util.List;
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class BinaryProxyToWeb extends Recipe {
-    public static final String METHOD_NAME = "callSvcProxy";
-
     @Override
     public String getDisplayName() {
         // language=markdown
@@ -51,142 +50,6 @@ public class BinaryProxyToWeb extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<>() {
-
-            private final JavaTemplate NEW_BOOLEAN = JavaTemplate.builder("final boolean useWeb = true;\n")
-                    .contextSensitive()
-                    .build();
-
-            private final JavaTemplate IF_INITIALIZATION = JavaTemplate.builder(
-                            """
-                                    if(useWeb) {
-                                        AuMhHostInfoResponseDto #{} = callSvcWeb(#{});
-                                    } else {
-                                        #{any()};
-                                    }
-                                    """)
-                    .contextSensitive()
-                    .build();
-            private final JavaTemplate IF_RETURN = JavaTemplate.builder(
-                            """
-                                    if(useWeb) {
-                                        return callSvcWeb(#{});
-                                    } else {
-                                        #{any()};
-                                    }
-                                    """)
-                    .contextSensitive()
-                    .build();
-            private final JavaTemplate IF_ASSIGNMENT = JavaTemplate.builder(
-                            """
-                                    if(useWeb) {
-                                        #{} = callSvcWeb(#{});
-                                    } else {
-                                        #{any()};
-                                    }
-                                    """)
-                    .contextSensitive()
-                    .build();
-            private final JavaTemplate IF_INVOCATION = JavaTemplate.builder(
-                            """
-                                    if(useWeb) {
-                                        callSvcWeb(#{});
-                                    } else {
-                                        #{any()};
-                                    }
-                                    """)
-                    .contextSensitive()
-                    .build();
-
-
-            @Override
-            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-                final J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
-
-                List<Statement> statements = m.getBody().getStatements();
-                String first = statements.get(0) + ";";
-
-                if (first.equals(NEW_BOOLEAN.getCode())) {
-                    return m;
-                }
-
-                List<?> invocations = statements
-                        .stream()
-                        .filter(t -> t.print(getCursor()).contains(METHOD_NAME))
-                        .toList();
-
-
-                if (invocations.isEmpty()) {
-                    return m;
-                }
-
-                J.MethodDeclaration me = NEW_BOOLEAN.apply(
-                        updateCursor(m),
-                        m.getBody().getCoordinates().firstStatement());
-
-
-                for (Object o : invocations) {
-                    Statement invocation = (Statement) o;
-                    if (invocation instanceof J.VariableDeclarations decl) {
-                        String argName = decl.print().split(METHOD_NAME + "\\(")[1];
-                        argName = argName.split("\\)")[0];
-
-                        String varName = decl.getVariables().get(0).getName().getSimpleName();
-                        me = IF_INITIALIZATION.apply(
-                                updateCursor(me),
-                                decl.getCoordinates().replace(),
-                                varName,
-                                argName,
-                                invocation);
-                    }
-
-                    if (invocation instanceof J.Return returnStatement) {
-                        String argName = null;
-                        if (returnStatement.getExpression() instanceof J.MethodInvocation methodInvocation) {
-                            if (methodInvocation.getArguments().get(0) instanceof J.Identifier identifier) {
-                                argName = identifier.getSimpleName();
-                            }
-                        }
-                        me = IF_RETURN.apply(
-                                updateCursor(me),
-                                returnStatement.getCoordinates().replace(),
-                                argName,
-                                invocation);
-                    }
-
-                    if (invocation instanceof J.Assignment assignment) {
-                        String argName = null;
-                        if (assignment.getAssignment() instanceof J.MethodInvocation methodInvocation) {
-                            if (methodInvocation.getArguments().get(0) instanceof J.Identifier identifier) {
-                                argName = identifier.getSimpleName();
-                            }
-
-                        }
-                        String varName = assignment.getVariable().toString();
-                        me = IF_ASSIGNMENT.apply(
-                                updateCursor(me),
-                                assignment.getCoordinates().replace(),
-                                varName,
-                                argName,
-                                invocation);
-                    }
-
-                    if (invocation instanceof J.MethodInvocation methodInvocation) {
-                        String argName = null;
-                        if (methodInvocation.getArguments().get(0) instanceof J.Identifier identifier) {
-                            argName = identifier.getSimpleName();
-                        }
-                        me = IF_INVOCATION.apply(
-                                updateCursor(me),
-                                methodInvocation.getCoordinates().replace(),
-                                argName,
-                                invocation);
-                    }
-                }
-
-                return me;
-            }
-
-        };
+        return new BinaryProxyToWebVisitor();
     }
 }

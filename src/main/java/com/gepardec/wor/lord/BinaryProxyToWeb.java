@@ -30,6 +30,7 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.Statement;
 
 import java.util.List;
 
@@ -63,13 +64,19 @@ public class BinaryProxyToWeb extends Recipe {
                     @Override
                     public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                         final J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
-                        List<?> invocations = m.getBody().getStatements()
+
+                        List<Statement> statements = m.getBody().getStatements();
+                        String first = statements.get(0) + ";";
+                        if (first.equals(NEW_BOOLEAN.getCode())) {
+                            return m;
+                        }
+
+                        List<?> invocations = statements
                                 .stream()
                                 .filter(J.VariableDeclarations.class::isInstance)
                                 .map(J.VariableDeclarations.class::cast)
                                 .filter(t -> t.print(getCursor()).contains(METHOD_NAME))
                                 .toList();
-
 
                         if (!invocations.isEmpty()) {
                             return NEW_BOOLEAN.apply(updateCursor(m), m.getBody().getCoordinates().firstStatement());

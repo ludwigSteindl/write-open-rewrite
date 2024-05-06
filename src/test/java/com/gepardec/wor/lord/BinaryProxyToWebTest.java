@@ -47,12 +47,11 @@ public class BinaryProxyToWebTest implements RewriteTest {
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
                       AuMhHostInfoResponseDto ret = callSvcProxy(req);
-                      
                       return ret;
                   }
                   
-                  
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
               
               public class AuMhHostInfoResponseDto {
@@ -69,13 +68,16 @@ public class BinaryProxyToWebTest implements RewriteTest {
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
                       final boolean useWeb = true;
-                      AuMhHostInfoResponseDto ret = callSvcProxy(req);
-                      
+                      if (useWeb) {
+                          AuMhHostInfoResponseDto ret = callSvcWeb(req);
+                      } else {
+                          AuMhHostInfoResponseDto ret = callSvcProxy(req);
+                      }
                       return ret;
                   }
                   
-                  
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
               
               public class AuMhHostInfoResponseDto {

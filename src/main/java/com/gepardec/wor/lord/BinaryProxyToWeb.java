@@ -17,19 +17,13 @@ package com.gepardec.wor.lord;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Statement;
 
 import java.util.List;
@@ -61,30 +55,50 @@ public class BinaryProxyToWeb extends Recipe {
                     .contextSensitive()
                     .build();
 
+            private final JavaTemplate IF_USE_WEB = JavaTemplate.builder(
+                    """
+                    if(useWeb) {
+                        AuMhHostInfoResponseDto ret = callSvcWeb(req);
+                    } else {
+                        #{any()};
+                    }
+                    """)
+                    .contextSensitive()
+                    .build();
+
+
                     @Override
                     public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                         final J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
 
                         List<Statement> statements = m.getBody().getStatements();
                         String first = statements.get(0) + ";";
+
                         if (first.equals(NEW_BOOLEAN.getCode())) {
                             return m;
                         }
 
                         List<?> invocations = statements
                                 .stream()
-                                .filter(J.VariableDeclarations.class::isInstance)
-                                .map(J.VariableDeclarations.class::cast)
                                 .filter(t -> t.print(getCursor()).contains(METHOD_NAME))
                                 .toList();
 
+
                         if (!invocations.isEmpty()) {
-                            return NEW_BOOLEAN.apply(updateCursor(m), m.getBody().getCoordinates().firstStatement());
+                            J.MethodDeclaration me = NEW_BOOLEAN.apply(
+                                    updateCursor(m),
+                                    m.getBody().getCoordinates().firstStatement());
+
+                            J.VariableDeclarations decl = (J.VariableDeclarations) invocations.get(0);
+                            return IF_USE_WEB.apply(
+                                    updateCursor(me),
+                                    decl.getCoordinates().replace(),
+                                    invocations.get(0));
                         }
 
                         return m;
-
                     }
+
                 };
     }
 }

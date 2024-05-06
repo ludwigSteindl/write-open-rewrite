@@ -37,7 +37,6 @@ public class BinaryProxyToWebTest implements RewriteTest {
     @DocumentExample
     @Test
     public void whenCallInInitialization_thenAddWebCall() {
-
         LOG.info("Start Test");
         rewriteRun(
           //language=java
@@ -134,6 +133,68 @@ public class BinaryProxyToWebTest implements RewriteTest {
                           ret = callSvcWeb(req);
                       } else {
                           ret = callSvcProxy(req);
+                      }
+                      return ret;
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              """
+          )
+        );
+    }@DocumentExample
+    @Test
+    public void whenCallsWithDifferentVariableNames_thenAddWebForDifferentVariables() {
+        LOG.info("Start Test");
+        rewriteRun(
+          //language=java
+          java(
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
+                      AuMhHostInfoResponseDto ret = callSvcProxy(req);
+                      AuMhHostInfoResponseDto ret2 = callSvcProxy(req);
+                      return ret;
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              """,
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
+                      final boolean useWeb = true;
+                      if (useWeb) {
+                          AuMhHostInfoResponseDto ret = callSvcWeb(req);
+                      } else {
+                          AuMhHostInfoResponseDto ret = callSvcProxy(req);
+                      }
+                      if (useWeb) {
+                          AuMhHostInfoResponseDto ret2 = callSvcWeb(req);
+                      } else {
+                          AuMhHostInfoResponseDto ret2 = callSvcProxy(req);
                       }
                       return ret;
                   }

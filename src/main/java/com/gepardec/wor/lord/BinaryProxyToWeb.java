@@ -26,6 +26,7 @@ import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Statement;
 
+import javax.swing.plaf.nimbus.State;
 import java.util.Iterator;
 import java.util.List;
 
@@ -59,7 +60,7 @@ public class BinaryProxyToWeb extends Recipe {
             private final JavaTemplate IF_INITIALIZATION = JavaTemplate.builder(
                     """
                     if(useWeb) {
-                        AuMhHostInfoResponseDto ret = callSvcWeb(req);
+                        AuMhHostInfoResponseDto #{} = callSvcWeb(req);
                     } else {
                         #{any()};
                     }
@@ -127,9 +128,11 @@ public class BinaryProxyToWeb extends Recipe {
                         for (Object o : invocations) {
                             Statement invocation = (Statement) o;
                             if (invocation instanceof J.VariableDeclarations decl) {
+                                String varName = decl.getVariables().get(0).getName().getSimpleName();
                                 me = IF_INITIALIZATION.apply(
                                         updateCursor(me),
                                         decl.getCoordinates().replace(),
+                                        varName,
                                         invocation);
                             }
 

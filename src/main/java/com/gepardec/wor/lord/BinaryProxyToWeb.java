@@ -60,7 +60,7 @@ public class BinaryProxyToWeb extends Recipe {
             private final JavaTemplate IF_INITIALIZATION = JavaTemplate.builder(
                             """
                                     if(useWeb) {
-                                        AuMhHostInfoResponseDto #{} = callSvcWeb(req);
+                                        AuMhHostInfoResponseDto #{} = callSvcWeb(#{});
                                     } else {
                                         #{any()};
                                     }
@@ -70,7 +70,7 @@ public class BinaryProxyToWeb extends Recipe {
             private final JavaTemplate IF_RETURN = JavaTemplate.builder(
                             """
                                     if(useWeb) {
-                                        return callSvcWeb(req);
+                                        return callSvcWeb(#{});
                                     } else {
                                         #{any()};
                                     }
@@ -80,7 +80,7 @@ public class BinaryProxyToWeb extends Recipe {
             private final JavaTemplate IF_ASSIGNMENT = JavaTemplate.builder(
                             """
                                     if(useWeb) {
-                                        #{} = callSvcWeb(req);
+                                        #{} = callSvcWeb(#{});
                                     } else {
                                         #{any()};
                                     }
@@ -90,7 +90,7 @@ public class BinaryProxyToWeb extends Recipe {
             private final JavaTemplate IF_INVOCATION = JavaTemplate.builder(
                             """
                                     if(useWeb) {
-                                        callSvcWeb(req);
+                                        callSvcWeb(#{});
                                     } else {
                                         #{any()};
                                     }
@@ -128,34 +128,58 @@ public class BinaryProxyToWeb extends Recipe {
                 for (Object o : invocations) {
                     Statement invocation = (Statement) o;
                     if (invocation instanceof J.VariableDeclarations decl) {
+                        String argName = decl.print().split(METHOD_NAME + "\\(")[1];
+                        argName = argName.split("\\)")[0];
+
                         String varName = decl.getVariables().get(0).getName().getSimpleName();
                         me = IF_INITIALIZATION.apply(
                                 updateCursor(me),
                                 decl.getCoordinates().replace(),
                                 varName,
+                                argName,
                                 invocation);
                     }
 
                     if (invocation instanceof J.Return returnStatement) {
+                        String argName = null;
+                        if (returnStatement.getExpression() instanceof J.MethodInvocation methodInvocation) {
+                            if (methodInvocation.getArguments().get(0) instanceof J.Identifier identifier) {
+                                argName = identifier.getSimpleName();
+                            }
+                        }
                         me = IF_RETURN.apply(
                                 updateCursor(me),
                                 returnStatement.getCoordinates().replace(),
+                                argName,
                                 invocation);
                     }
 
                     if (invocation instanceof J.Assignment assignment) {
+                        String argName = null;
+                        if (assignment.getAssignment() instanceof J.MethodInvocation methodInvocation) {
+                            if (methodInvocation.getArguments().get(0) instanceof J.Identifier identifier) {
+                                argName = identifier.getSimpleName();
+                            }
+
+                        }
                         String varName = assignment.getVariable().toString();
                         me = IF_ASSIGNMENT.apply(
                                 updateCursor(me),
                                 assignment.getCoordinates().replace(),
                                 varName,
+                                argName,
                                 invocation);
                     }
 
                     if (invocation instanceof J.MethodInvocation methodInvocation) {
+                        String argName = null;
+                        if (methodInvocation.getArguments().get(0) instanceof J.Identifier identifier) {
+                            argName = identifier.getSimpleName();
+                        }
                         me = IF_INVOCATION.apply(
                                 updateCursor(me),
                                 methodInvocation.getCoordinates().replace(),
+                                argName,
                                 invocation);
                     }
                 }

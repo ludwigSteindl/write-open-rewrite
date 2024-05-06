@@ -220,6 +220,260 @@ public class BinaryProxyToWebTest implements RewriteTest {
           )
         );
     }
+    @DocumentExample
+    @Test
+    public void whenCallsWithDifferentParameterNames_thenAddWebForDifferentParameterNames() {
+        LOG.info("Start Test");
+        rewriteRun(
+          //language=java
+          java(
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
+                      AuMhHostInfoRequestDto req2 = null;
+                      AuMhHostInfoResponseDto ret;
+                      ret = callSvcProxy(req);
+                      AuMhHostInfoResponseDto ret2;
+                      ret2 = callSvcProxy(req2);
+                      return ret;
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              """,
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
+                      final boolean useWeb = true;
+                      AuMhHostInfoRequestDto req2 = null;
+                      AuMhHostInfoResponseDto ret;
+                      if (useWeb) {
+                          ret = callSvcWeb(req);
+                      } else {
+                          ret = callSvcProxy(req);
+                      }
+                      AuMhHostInfoResponseDto ret2;
+                      if (useWeb) {
+                          ret2 = callSvcWeb(req2);
+                      } else {
+                          ret2 = callSvcProxy(req2);
+                      }
+                      return ret;
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              """
+          )
+        );
+    }
+    @DocumentExample
+    @Test
+    public void whenDeclarationsWithDifferentParameterNames_thenAddWebForDifferentParameterNames() {
+        LOG.info("Start Test");
+        rewriteRun(
+          //language=java
+          java(
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
+                      AuMhHostInfoRequestDto req2 = null;
+                      AuMhHostInfoResponseDto ret = callSvcProxy(req);
+                      AuMhHostInfoResponseDto ret2 = callSvcProxy(req2);
+                      return ret;
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              """,
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
+                      final boolean useWeb = true;
+                      AuMhHostInfoRequestDto req2 = null;
+                      if (useWeb) {
+                          AuMhHostInfoResponseDto ret = callSvcWeb(req);
+                      } else {
+                          AuMhHostInfoResponseDto ret = callSvcProxy(req);
+                      }
+                      if (useWeb) {
+                          AuMhHostInfoResponseDto ret2 = callSvcWeb(req2);
+                      } else {
+                          AuMhHostInfoResponseDto ret2 = callSvcProxy(req2);
+                      }
+                      return ret;
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              """
+          )
+        );
+    }
+    @DocumentExample
+    @Test
+    public void whenInvocationsWithDifferentParameterNames_thenAddWebForDifferentParameterNames() {
+        LOG.info("Start Test");
+        rewriteRun(
+          //language=java
+          java(
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
+                      AuMhHostInfoRequestDto req2 = null;
+                      callSvcProxy(req);
+                      callSvcProxy(req2);
+                      return ret;
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              """,
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
+                      final boolean useWeb = true;
+                      AuMhHostInfoRequestDto req2 = null;
+                      if (useWeb) {
+                          callSvcWeb(req);
+                      } else {
+                          callSvcProxy(req);
+                      }
+                      if (useWeb) {
+                          callSvcWeb(req2);
+                      } else {
+                          callSvcProxy(req2);
+                      }
+                      return ret;
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              """
+          )
+        );
+    }
+    @DocumentExample
+    @Test
+    public void whenReturnWithDifferentParameterNames_thenAddWebForDifferentParameterNames() {
+        LOG.info("Start Test");
+        rewriteRun(
+          //language=java
+          java(
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
+                      return callSvcProxy(asd);
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              """,
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
+                      final boolean useWeb = true;
+                      if (useWeb) {
+                          return callSvcWeb(asd);
+                      } else {
+                          return callSvcProxy(asd);
+                      }
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              """
+          )
+        );
+    }
 
 
     @DocumentExample

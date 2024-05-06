@@ -17,6 +17,7 @@ package com.gepardec.wor.lord;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.slf4j.Logger;
@@ -47,12 +48,11 @@ public class BinaryProxyToWebTest implements RewriteTest {
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
                       AuMhHostInfoResponseDto ret = callSvcProxy(req);
-                      
                       return ret;
                   }
                   
-                  
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
               
               public class AuMhHostInfoResponseDto {
@@ -69,13 +69,16 @@ public class BinaryProxyToWebTest implements RewriteTest {
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
                       final boolean useWeb = true;
-                      AuMhHostInfoResponseDto ret = callSvcProxy(req);
-                      
+                      if (useWeb) {
+                          AuMhHostInfoResponseDto ret = callSvcWeb(req);
+                      } else {
+                          AuMhHostInfoResponseDto ret = callSvcProxy(req);
+                      }
                       return ret;
                   }
                   
-                  
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
               
               public class AuMhHostInfoResponseDto {

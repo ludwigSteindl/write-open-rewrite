@@ -1,9 +1,11 @@
 package com.gepardec.wor.lord;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Statement;
 
@@ -16,44 +18,28 @@ public class BinaryProxyToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
     private final JavaTemplate NEW_BOOLEAN = JavaTemplate.builder("final boolean useWeb = true;\n")
             .contextSensitive()
             .build();
-    private final JavaTemplate IF_INITIALIZATION = JavaTemplate.builder(
-                    """
+
+    private final static String IF_TEMPLATE = """
                             if(useWeb) {
-                                AuMhHostInfoResponseDto #{} = callSvcWeb(#{});
+                                %s
                             } else {
                                 #{any()};
                             }
-                            """)
+                            """;
+    private final static JavaTemplate IF_INITIALIZATION = JavaTemplate
+            .builder(IF_TEMPLATE.formatted("AuMhHostInfoResponseDto #{} = callSvcWeb(#{});"))
             .contextSensitive()
             .build();
-    private final JavaTemplate IF_RETURN = JavaTemplate.builder(
-                    """
-                            if(useWeb) {
-                                return callSvcWeb(#{});
-                            } else {
-                                #{any()};
-                            }
-                            """)
+    private final static JavaTemplate IF_RETURN = JavaTemplate
+            .builder(IF_TEMPLATE.formatted("return callSvcWeb(#{});"))
             .contextSensitive()
             .build();
-    private final JavaTemplate IF_ASSIGNMENT = JavaTemplate.builder(
-                    """
-                            if(useWeb) {
-                                #{} = callSvcWeb(#{});
-                            } else {
-                                #{any()};
-                            }
-                            """)
+    private final static JavaTemplate IF_ASSIGNMENT = JavaTemplate
+            .builder(IF_TEMPLATE.formatted("#{} = callSvcWeb(#{});"))
             .contextSensitive()
             .build();
     private final JavaTemplate IF_INVOCATION = JavaTemplate.builder(
-                    """
-                            if(useWeb) {
-                                callSvcWeb(#{});
-                            } else {
-                                #{any()};
-                            }
-                            """)
+             IF_TEMPLATE.formatted("callSvcWeb(#{});"))
             .contextSensitive()
             .build();
 
@@ -92,10 +78,7 @@ public class BinaryProxyToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
     }
 
     private J.MethodDeclaration addWebInvocation(Statement statement, J.MethodInvocation methodInvocation, J.MethodDeclaration methodDeclaration) {
-        String argName = null;
-        if (methodInvocation.getArguments().get(0) instanceof J.Identifier identifier) {
-            argName = identifier.getSimpleName();
-        }
+        String argName = getArgumentName(methodInvocation);
         methodDeclaration = IF_INVOCATION.apply(
                 updateCursor(methodDeclaration),
                 methodInvocation.getCoordinates().replace(),
@@ -104,14 +87,17 @@ public class BinaryProxyToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
         return methodDeclaration;
     }
 
-    private J.MethodDeclaration addWebAssignment(J.Assignment assignment, J.MethodDeclaration methodDeclaration) {
+    @Nullable
+    private static String getArgumentName(J.MethodInvocation methodInvocation) {
         String argName = null;
-        if (assignment.getAssignment() instanceof J.MethodInvocation methodInvocation) {
-            if (methodInvocation.getArguments().get(0) instanceof J.Identifier identifier) {
-                argName = identifier.getSimpleName();
-            }
-
+        if (methodInvocation.getArguments().get(0) instanceof J.Identifier identifier) {
+            argName = identifier.getSimpleName();
         }
+        return argName;
+    }
+
+    private J.MethodDeclaration addWebAssignment(J.Assignment assignment, J.MethodDeclaration methodDeclaration) {
+        String argName = getArgumentName(assignment.getAssignment());
         String varName = assignment.getVariable().toString();
         methodDeclaration = IF_ASSIGNMENT.apply(
                 updateCursor(methodDeclaration),
@@ -123,18 +109,24 @@ public class BinaryProxyToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
     }
 
     private J.MethodDeclaration addWebReturn(J.Return returnStatement, J.MethodDeclaration methodDeclaration) {
-        String argName = null;
-        if (returnStatement.getExpression() instanceof J.MethodInvocation methodInvocation) {
-            if (methodInvocation.getArguments().get(0) instanceof J.Identifier identifier) {
-                argName = identifier.getSimpleName();
-            }
-        }
+        String argName = getArgumentName(returnStatement.getExpression());
         methodDeclaration = IF_RETURN.apply(
                 updateCursor(methodDeclaration),
                 returnStatement.getCoordinates().replace(),
                 argName,
                 returnStatement);
         return methodDeclaration;
+    }
+
+    @Nullable
+    private static String getArgumentName(Expression expression) {
+        String argName = null;
+        if (expression instanceof J.MethodInvocation methodInvocation) {
+            if (methodInvocation.getArguments().get(0) instanceof J.Identifier identifier) {
+                argName = identifier.getSimpleName();
+            }
+        }
+        return argName;
     }
 
     private J.MethodDeclaration addWebDeclaration(J.VariableDeclarations decl, J.MethodDeclaration methodDeclaration) {

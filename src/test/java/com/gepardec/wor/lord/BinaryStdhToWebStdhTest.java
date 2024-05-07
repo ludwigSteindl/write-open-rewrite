@@ -40,6 +40,7 @@ public class BinaryStdhToWebStdhTest implements RewriteTest {
                   OmStandardRequestHeader stdh = objectFactory.createOmStandardRequestHeader();
                   Laqamhsu reqDto = new Laqamhsu();
                   stdh.setZvst("11");
+                  reqDto.setOmStandardRequestHeader(stdh);
               }
           }
           """));
@@ -64,6 +65,7 @@ public class BinaryStdhToWebStdhTest implements RewriteTest {
                   OmStandardRequestHeader stdh = objectFactory.createOmStandardRequestHeader();
                   Laqamhsu reqDto2 = new Laqamhsu();
                   stdh.setZvst("14");
+                  reqDto2.setOmStandardRequestHeader(stdh);
               }
           }
           """));

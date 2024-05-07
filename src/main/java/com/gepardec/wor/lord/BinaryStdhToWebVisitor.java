@@ -9,6 +9,7 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaCoordinates;
 import org.openrewrite.java.tree.Statement;
 
 import java.util.List;
@@ -67,6 +68,20 @@ public class BinaryStdhToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
             .contextSensitive()
             .build();
 
+    private static final JavaTemplate SET_OM_STANDARD_REQUEST_HEADER = JavaTemplate.builder("#{}.setOmStandardRequestHeader(stdh);\n")
+            .javaParser(JavaParser.fromJavaVersion().dependsOn(
+                    "package javax.xml.bind;\n" +
+                            "public class Laqamhsu {\n" +
+                            "    public void setOmStandardRequestHeader(OmStandardRequestHeader stdh) {\n" +
+                            "    }\n" +
+                            "}\n" +
+                            "public class OmStandardRequestHeader {\n" +
+                            "    public void setZvst(String zvst) {\n" +
+                            "    }\n" +
+                            "}\n"))
+            .contextSensitive()
+            .build();
+
     @Override
     @NotNull
     public J.MethodDeclaration visitMethodDeclaration(@NotNull J.MethodDeclaration method, @NotNull ExecutionContext ctx) {
@@ -111,7 +126,29 @@ public class BinaryStdhToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
             methodDeclaration = NEW_STDH_SET.apply(updateCursor(methodDeclaration), methodInvocation.getCoordinates().replace(), arg);
         }
 
-        return methodDeclaration;
+        boolean hasSetStdh = methodDeclaration.getBody().getStatements().stream()
+                .anyMatch(statement -> statement.print(getCursor()).contains(".setOmStandardRequestHeader"));
+        if (hasSetStdh) {
+            return methodDeclaration;
+        }
+
+        String varName = methodDeclaration.getBody().getStatements().stream()
+                .filter(J.VariableDeclarations.class::isInstance)
+                .map(J.VariableDeclarations.class::cast)
+                .filter(declaration -> declaration.getTypeExpression().print(getCursor()).contains("Laqamhsu"))
+                .findFirst()
+                .get()
+                .getVariables()
+                .get(0)
+                .getSimpleName()
+                .toString();
+
+        Statement lastInvocation = methodDeclaration.getBody().getStatements().stream()
+                .filter(statement -> statement.print(getCursor()).contains("stdh"))
+                .reduce((first, second) -> second)
+                .get();
+
+        return SET_OM_STANDARD_REQUEST_HEADER.apply(updateCursor(methodDeclaration), lastInvocation.getCoordinates().after(), varName);
     }
 
     @Override

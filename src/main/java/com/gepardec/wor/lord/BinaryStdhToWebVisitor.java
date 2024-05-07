@@ -6,6 +6,8 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Statement;
 
@@ -42,7 +44,7 @@ public class BinaryStdhToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
             .contextSensitive()
             .build();
 
-    private static final JavaTemplate NEW_STDH_SET = JavaTemplate.builder("stdh.setZvst(\"11\");\n")
+    private static final JavaTemplate NEW_STDH_SET = JavaTemplate.builder("stdh.setZvst(#{});\n")
             .javaParser(JavaParser.fromJavaVersion().dependsOn(
                     "package javax.xml.bind;\n" +
                             "public class ObjectFactory {\n" +
@@ -57,13 +59,14 @@ public class BinaryStdhToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
             .contextSensitive()
             .build();
 
-    private static final JavaTemplate NEW_LAQAMHSU = JavaTemplate.builder("Laqamhsu reqDto = new Laqamhsu();\n")
+    private static final JavaTemplate NEW_LAQAMHSU = JavaTemplate.builder("Laqamhsu #{} = new Laqamhsu();\n")
             .javaParser(JavaParser.fromJavaVersion().dependsOn(
                     "package javax.xml.bind;\n" +
                             "public class Laqamhsu {\n" +
                             "}\n"))
             .contextSensitive()
             .build();
+
     @Override
     @NotNull
     public J.MethodDeclaration visitMethodDeclaration(@NotNull J.MethodDeclaration method, @NotNull ExecutionContext ctx) {
@@ -80,8 +83,13 @@ public class BinaryStdhToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
                 .anyMatch(statement -> statement.print(getCursor()).contains("ObjectFactory objectFactory = new ObjectFactory()"));
 
 
-        List<Statement> setZvstCalls = methodDeclaration.getBody().getStatements().stream()
-                .filter(statement -> statement.print(getCursor()).contains("reqDto.setZvst")).toList();
+        List<J.MethodInvocation> setZvstCalls = methodDeclaration.getBody().getStatements().stream()
+                .filter(J.MethodInvocation.class::isInstance)
+                .map(J.MethodInvocation.class::cast)
+                .filter(methodInvocation -> methodInvocation.getSimpleName().contains("setZvst"))
+                .filter(methodInvocation -> !methodInvocation.print(getCursor()).contains("stdh.setZvst"))
+                .toList();
+
 
         if (setZvstCalls.isEmpty()) {
             return methodDeclaration;
@@ -98,8 +106,9 @@ public class BinaryStdhToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
             methodDeclaration = NEW_OBJECT_FACTORY.apply(updateCursor(methodDeclaration), methodDeclaration.getBody().getCoordinates().firstStatement());
         }
 
-        for (Statement statement : setZvstCalls) {
-            methodDeclaration = NEW_STDH_SET.apply(updateCursor(methodDeclaration), statement.getCoordinates().replace());
+        for (J.MethodInvocation methodInvocation : setZvstCalls) {
+            Expression arg = methodInvocation.getArguments().get(0);
+            methodDeclaration = NEW_STDH_SET.apply(updateCursor(methodDeclaration), methodInvocation.getCoordinates().replace(), arg);
         }
 
         return methodDeclaration;
@@ -112,7 +121,8 @@ public class BinaryStdhToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
         String type = variableDeclarations.getTypeExpression().toString();
 
         if (type.equals("LaqamhsuDto")) {
-            return NEW_LAQAMHSU.apply(updateCursor(variableDeclarations), variableDeclarations.getCoordinates().replace());
+            String varName = variableDeclarations.getVariables().get(0).getName().getSimpleName().toString();
+            return NEW_LAQAMHSU.apply(updateCursor(variableDeclarations), variableDeclarations.getCoordinates().replace(), varName);
         }
         return variableDeclarations;
     }

@@ -44,4 +44,42 @@ public class BinaryStdhToWebStdhTest implements RewriteTest {
           }
           """));
     }    //language=java
+    @DocumentExample
+    @Test
+    public void whenBinaryStdhSetOtherNameAndValue_thenCreateWebStdh() {
+        rewriteRun(
+          //language=java
+          java("""
+          public class Test {
+              public void test() {
+                  LaqamhsuDto reqDto2 = new LaqamhsuDto();
+                  reqDto2.setZvst("14");
+              }
+          }
+          """,
+          """
+          public class Test {
+              public void test() {
+                  ObjectFactory objectFactory = new ObjectFactory();
+                  OmStandardRequestHeader stdh = objectFactory.createOmStandardRequestHeader();
+                  Laqamhsu reqDto2 = new Laqamhsu();
+                  stdh.setZvst("14");
+              }
+          }
+          """));
+    }    //language=java
+    @DocumentExample
+    @Test
+    public void whenNoDtoUsed_thenDoNothing() {
+        rewriteRun(
+          //language=java
+          java("""
+          public class Test {
+              public void test() {
+                  int i = 0;
+                  i++;
+              }
+          }
+          """));
+    }    //language=java
 }

@@ -4,9 +4,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaCoordinates;
 import org.openrewrite.java.tree.Statement;
 
 import java.util.List;
@@ -38,8 +40,8 @@ public class BinaryProxyToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
             .builder(IF_TEMPLATE.formatted("#{} = callSvcWeb(#{});"))
             .contextSensitive()
             .build();
-    private final JavaTemplate IF_INVOCATION = JavaTemplate.builder(
-             IF_TEMPLATE.formatted("callSvcWeb(#{});"))
+    private final JavaTemplate IF_INVOCATION = JavaTemplate
+            .builder(IF_TEMPLATE.formatted("callSvcWeb(#{});"))
             .contextSensitive()
             .build();
 

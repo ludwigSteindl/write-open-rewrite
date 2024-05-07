@@ -72,6 +72,37 @@ public class BinaryStdhToWebStdhTest implements RewriteTest {
     }    //language=java
     @DocumentExample
     @Test
+    public void whenBinaryStdhSetWithOtherStatements_thenCreateWebStdhAndAddToDtoAfterLastSetter() {
+        rewriteRun(
+          //language=java
+          java("""
+          public class Test {
+              public void test() {
+                  System.out.println("Hello");
+                  LaqamhsuDto reqDto2 = new LaqamhsuDto();
+                  int i = 0;
+                  reqDto2.setZvst("14");
+                  System.out.println("Sending request to you: " + reqDto2);
+              }
+          }
+          """,
+          """
+          public class Test {
+              public void test() {
+                  ObjectFactory objectFactory = new ObjectFactory();
+                  OmStandardRequestHeader stdh = objectFactory.createOmStandardRequestHeader();
+                  System.out.println("Hello");
+                  Laqamhsu reqDto2 = new Laqamhsu();
+                  int i = 0;
+                  stdh.setZvst("14");
+                  reqDto2.setOmStandardRequestHeader(stdh);
+                  System.out.println("Sending request to you: " + reqDto2);
+              }
+          }
+          """));
+    }    //language=java
+    @DocumentExample
+    @Test
     public void whenNoDtoUsed_thenDoNothing() {
         rewriteRun(
           //language=java

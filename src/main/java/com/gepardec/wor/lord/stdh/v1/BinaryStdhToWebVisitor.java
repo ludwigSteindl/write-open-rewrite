@@ -1,15 +1,12 @@
-package com.gepardec.wor.lord.stdh;
+package com.gepardec.wor.lord.stdh.v1;
 
 import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaCoordinates;
 import org.openrewrite.java.tree.Statement;
 
 import java.util.List;

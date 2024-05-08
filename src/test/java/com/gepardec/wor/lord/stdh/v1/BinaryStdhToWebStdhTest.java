@@ -1,7 +1,7 @@
-package com.gepardec.wor.lord.stdh;
+package com.gepardec.wor.lord.stdh.v1;
 
 import com.gepardec.wor.lord.call.ternaries.BinaryProxyToWebTernaryAndClassTest;
-import com.gepardec.wor.lord.stdh.BinaryStdhToWeb;
+import com.gepardec.wor.lord.stdh.v1.BinaryStdhToWeb;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;

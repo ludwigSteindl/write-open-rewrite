@@ -1,4 +1,4 @@
-package com.gepardec.wor.lord.stdh;
+package com.gepardec.wor.lord.stdh.v1;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;

@@ -278,7 +278,6 @@ public class BinaryProxyToWebTernaryAndClassTest implements RewriteTest {
     }
     @DocumentExample
     @Test
-    @Disabled("Fails due to a bug: missing recognition of the nested call")
     public void whenCallInOtherCall_thenChangeToTernaryAndAddToConfigClassOnce() {
         LOG.info("Start Test");
         rewriteRun(
@@ -348,7 +347,7 @@ public class BinaryProxyToWebTernaryAndClassTest implements RewriteTest {
 
     @DocumentExample
     @Test
-    @Disabled("Fails due to a bug: Ternary is missing semicolons when replacing the call")
+    @Disabled("Fails due to a bug: Ternary without assignment is not a valid statement")
     public void whenCallWithoutTargetVariable_thenAddWebCallWithSemicolons() {
         LOG.info("Start Test");
         rewriteRun(
@@ -359,6 +358,7 @@ public class BinaryProxyToWebTernaryAndClassTest implements RewriteTest {
               
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
+                      req == null ? 1 : 0;
                       callSvcProxy(req);
                       return null;
                   }
@@ -386,7 +386,7 @@ public class BinaryProxyToWebTernaryAndClassTest implements RewriteTest {
               
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
-                      ElgkkPropertiesUtil.isUseWeb() ? callSvcWeb(req) : callSvcProxy(req);
+                      AuMhHostInfoResponseDto unused = ElgkkPropertiesUtil.isUseWeb() ? callSvcWeb(req) : callSvcProxy(req);
                       return null;
                   }
                   

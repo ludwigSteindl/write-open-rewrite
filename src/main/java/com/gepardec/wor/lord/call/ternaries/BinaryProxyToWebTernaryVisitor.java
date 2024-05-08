@@ -9,13 +9,13 @@ import org.openrewrite.java.tree.J;
 public class BinaryProxyToWebTernaryVisitor extends JavaVisitor<ExecutionContext> {
 
     private static final JavaTemplate WEB_OR_PROXY =
-            JavaTemplate.builder("ElgkkPropertiesUtil.isUseWeb() ? callSvcWeb(#{any()}) : callSvcProxy(#{any()})")
+            JavaTemplate.builder("ElgkkPropertiesUtil.isUseWeb() ? callSvcWeb(#{any()}) : callSvcProxy(#{any()});")
             .build();
-
-
 
     @Override
     public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+        method = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
+
         if (!method.getSimpleName().equals("callSvcProxy")) {
             return method;
         }
@@ -27,7 +27,7 @@ public class BinaryProxyToWebTernaryVisitor extends JavaVisitor<ExecutionContext
             }
         }
 
-        Expression argument = method.getArguments().get(0);
+        Expression argument = method.getArguments().getFirst();
         doAfterVisit(new BinaryProxyToWebConfigClassVisitor());
         return WEB_OR_PROXY.apply(
                 updateCursor(method),

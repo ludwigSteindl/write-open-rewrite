@@ -15,6 +15,7 @@
  */
 package com.gepardec.wor.lord.call.ternaries;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
@@ -36,7 +37,7 @@ public class BinaryProxyToWebTernaryAndClassTest implements RewriteTest {
 
     @DocumentExample
     @Test
-    public void whenCallInInitialization_thenAddWebCall() {
+    public void whenCall_thenAddWebCall() {
         LOG.info("Start Test");
         rewriteRun(
           //language=java
@@ -102,4 +103,317 @@ public class BinaryProxyToWebTernaryAndClassTest implements RewriteTest {
           )
         );
     }
+    @DocumentExample
+    @Test
+    public void whenNoCall_thenDoNothing() {
+        LOG.info("Start Test");
+        rewriteRun(
+          //language=java
+          java(
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
+                      return ret;
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              
+              public class ElgkkPropertiesUtil {
+                  public static final String getElgkkProperties(String key) {
+                      return null;
+                  }
+              }
+              """)
+        );
+    }
+    @DocumentExample
+    @Test
+    public void whenMultipleCallsDifferentTypes_thenChangeToTernaryAndAddToConfigClassOnce() {
+        LOG.info("Start Test");
+        rewriteRun(
+          //language=java
+          java(
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
+                      AuMhHostInfoResponseDto ret = callSvcProxy(req);
+                      ret = callSvcProxy(req);
+                      return callSvcProxy(req);
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              
+              public class ElgkkPropertiesUtil {
+                  public static final String getElgkkProperties(String key) {
+                      return null;
+                  }
+              }
+              """,
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
+                      AuMhHostInfoResponseDto ret = ElgkkPropertiesUtil.isUseWeb() ? callSvcWeb(req) : callSvcProxy(req);
+                      ret = ElgkkPropertiesUtil.isUseWeb() ? callSvcWeb(req) : callSvcProxy(req);
+                      return ElgkkPropertiesUtil.isUseWeb() ? callSvcWeb(req) : callSvcProxy(req);
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              
+              public class ElgkkPropertiesUtil {
+                  public static final String getElgkkProperties(String key) {
+                      return null;
+                  }
+                  
+                  public static boolean isUseWeb() {
+                      return true;
+                  }
+              }
+              """
+          )
+        );
+    }
+    @DocumentExample
+    @Test
+    public void whenCallWithDifferentVariableNames_thenChangeToTernaryAndAddToConfigClassOnce() {
+        LOG.info("Start Test");
+        rewriteRun(
+          //language=java
+          java(
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto requestDto) {
+                      AuMhHostInfoResponseDto returnDto = callSvcProxy(requestDto);
+                      return returnDto;
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              
+              public class ElgkkPropertiesUtil {
+                  public static final String getElgkkProperties(String key) {
+                      return null;
+                  }
+              }
+              """,
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto requestDto) {
+                      AuMhHostInfoResponseDto returnDto = ElgkkPropertiesUtil.isUseWeb() ? callSvcWeb(requestDto) : callSvcProxy(requestDto);
+                      return returnDto;
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              
+              public class ElgkkPropertiesUtil {
+                  public static final String getElgkkProperties(String key) {
+                      return null;
+                  }
+                  
+                  public static boolean isUseWeb() {
+                      return true;
+                  }
+              }
+              """
+          )
+        );
+    }
+    @DocumentExample
+    @Test
+    @Disabled("Fails due to a bug: missing recognition of the nested call")
+    public void whenCallInOtherCall_thenChangeToTernaryAndAddToConfigClassOnce() {
+        LOG.info("Start Test");
+        rewriteRun(
+          //language=java
+          java(
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto requestDto) {
+                      System.out.print(callSvcProxy(requestDto));
+                      return null;
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              
+              public class ElgkkPropertiesUtil {
+                  public static final String getElgkkProperties(String key) {
+                      return null;
+                  }
+              }
+              """,
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto requestDto) {
+                      System.out.print(ElgkkPropertiesUtil.isUseWeb() ? callSvcWeb(requestDto) : callSvcProxy(requestDto));
+                      return null;
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              
+              public class ElgkkPropertiesUtil {
+                  public static final String getElgkkProperties(String key) {
+                      return null;
+                  }
+                  
+                  public static boolean isUseWeb() {
+                      return true;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @DocumentExample
+    @Test
+    @Disabled("Fails due to a bug: Ternary is missing semicolons when replacing the call")
+    public void whenCallWithoutTargetVariable_thenAddWebCallWithSemicolons() {
+        LOG.info("Start Test");
+        rewriteRun(
+          //language=java
+          java(
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
+                      callSvcProxy(req);
+                      return null;
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              
+              public class ElgkkPropertiesUtil {
+                  public static final String getElgkkProperties(String key) {
+                      return null;
+                  }
+              }
+              """,
+            """
+              package com.gepardec.wor.lord;
+              
+              public class Test {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
+                      ElgkkPropertiesUtil.isUseWeb() ? callSvcWeb(req) : callSvcProxy(req);
+                      return null;
+                  }
+                  
+                  AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
+                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+              }
+              
+              public class AuMhHostInfoResponseDto {
+                  public Integer getCallStatus() {
+                      return null;
+                  }
+              }
+              
+              public class AuMhHostInfoRequestDto {}
+              
+              public class ElgkkPropertiesUtil {
+                  public static final String getElgkkProperties(String key) {
+                      return null;
+                  }
+                  
+                  public static boolean isUseWeb() {
+                      return true;
+                  }
+              }
+              """
+          )
+        );
+    }
+
 }

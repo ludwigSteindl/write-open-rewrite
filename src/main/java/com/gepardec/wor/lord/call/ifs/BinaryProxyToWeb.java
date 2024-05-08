@@ -13,23 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.gepardec.wor.lord;
+package com.gepardec.wor.lord.call.ifs;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.Statement;
-
-import javax.swing.plaf.nimbus.State;
-import java.util.Iterator;
-import java.util.List;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
@@ -44,9 +34,6 @@ public class BinaryProxyToWeb extends Recipe {
     public String getDescription() {
         return "Change binary proxy call to web call.";
     }
-
-    private static MethodMatcher MATCHER = new MethodMatcher("org.junit.jupiter.api.Assertions assertEquals(..)");
-
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

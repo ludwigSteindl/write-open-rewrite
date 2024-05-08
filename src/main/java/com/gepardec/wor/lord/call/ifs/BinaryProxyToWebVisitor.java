@@ -1,21 +1,18 @@
-package com.gepardec.wor.lord;
+package com.gepardec.wor.lord.call.ifs;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaCoordinates;
 import org.openrewrite.java.tree.Statement;
 
 import java.util.List;
 
 public class BinaryProxyToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
     public static final String METHOD_NAME = "callSvcProxy";
-
 
     private final JavaTemplate NEW_BOOLEAN = JavaTemplate.builder("final boolean useWeb = true;\n")
             .contextSensitive()
@@ -131,18 +128,17 @@ public class BinaryProxyToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
         return argName;
     }
 
-    private J.MethodDeclaration addWebDeclaration(J.VariableDeclarations decl, J.MethodDeclaration methodDeclaration) {
-        String argName = decl.print().split(METHOD_NAME + "\\(")[1];
+    private J.MethodDeclaration addWebDeclaration(J.VariableDeclarations variableDeclarations, J.MethodDeclaration methodDeclaration) {
+        String argName = variableDeclarations.print(getCursor()).split(METHOD_NAME + "\\(")[1];
         argName = argName.split("\\)")[0];
 
-        String varName = decl.getVariables().get(0).getName().getSimpleName();
-        methodDeclaration = IF_INITIALIZATION.apply(
+        String varName = variableDeclarations.getVariables().get(0).getName().getSimpleName();
+        return IF_INITIALIZATION.apply(
                 updateCursor(methodDeclaration),
-                decl.getCoordinates().replace(),
+                variableDeclarations.getCoordinates().replace(),
                 varName,
                 argName,
-                decl);
-        return methodDeclaration;
+                variableDeclarations);
     }
 
     @NotNull

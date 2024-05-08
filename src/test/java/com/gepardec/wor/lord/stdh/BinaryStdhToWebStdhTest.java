@@ -1,5 +1,8 @@
-package com.gepardec.wor.lord;
+package com.gepardec.wor.lord.stdh;
 
+import com.gepardec.wor.lord.call.ternaries.BinaryProxyToWebTernaryAndClassTest;
+import com.gepardec.wor.lord.stdh.BinaryStdhToWeb;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
@@ -12,7 +15,7 @@ import static org.openrewrite.java.Assertions.java;
 
 public class BinaryStdhToWebStdhTest implements RewriteTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(BinaryProxyToWebTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BinaryProxyToWebTernaryAndClassTest.class);
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -30,6 +33,44 @@ public class BinaryStdhToWebStdhTest implements RewriteTest {
               public void test() {
                   LaqamhsuDto reqDto = new LaqamhsuDto();
                   reqDto.setZvst("11");
+              }
+          }
+          """,
+          """
+          public class Test {
+              public void test() {
+                  ObjectFactory objectFactory = new ObjectFactory();
+                  OmStandardRequestHeader stdh = objectFactory.createOmStandardRequestHeader();
+                  Laqamhsu reqDto = new Laqamhsu();
+                  stdh.setZvst("11");
+                  reqDto.setOmStandardRequestHeader(stdh);
+              }
+          }
+          """));
+    }    //language=java
+    @DocumentExample
+    @Test
+    @Disabled("Not yet implemented")
+    public void whenBinaryFullStdhSet_thenCreateWebFullStdh() {
+        LOG.info("Start Test");
+        rewriteRun(
+          //language=java
+          java("""
+          public class Test {
+              public void test() {
+                  LaqamhsuDto reqDto = new LaqamhsuDto();
+                  reqDto.setZvst("11");
+                  reqDto.setVers("001");
+                  reqDto.setDebuglevel(9.0);
+                  reqDto.setTransactionid(Sequencer.next());
+                  reqDto.setIdapp("LGKK");
+                  reqDto.setBearbgrund("LGKK");
+                  reqDto.setTraegerid(String.valueOf(req.getZustaendigertraeger()));
+                  reqDto.setOrgeinheitid("0000000000");
+                  reqDto.setSystemmodus(ElgkkPropertiesUtil.getSystemmodus());
+                  reqDto.setVerarbeitungsmodus("O");
+                  reqDto.setBerechtpruefung("0");
+                  reqDto.setQbid("");
               }
           }
           """,

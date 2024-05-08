@@ -1,4 +1,4 @@
-package com.gepardec.wor.lord;
+package com.gepardec.wor.lord.stdh;
 
 import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;

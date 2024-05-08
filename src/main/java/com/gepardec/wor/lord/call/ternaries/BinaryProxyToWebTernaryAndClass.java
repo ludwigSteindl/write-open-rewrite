@@ -1,15 +1,14 @@
-package com.gepardec.wor.lord;
+package com.gepardec.wor.lord.call.ternaries;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.MethodMatcher;
 
-public class BinaryStdhToWeb extends Recipe {
+public class BinaryProxyToWebTernaryAndClass extends Recipe {
     @Override
     public String getDisplayName() {
         // language=markdown
-        return "Change binary standard request headers to web stdh";
+        return "Change binary proxy calls to web calls";
     }
 
     @Override
@@ -19,6 +18,6 @@ public class BinaryStdhToWeb extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new BinaryStdhToWebVisitor();
+        return new BinaryProxyToWebTernaryVisitor();
     }
 }

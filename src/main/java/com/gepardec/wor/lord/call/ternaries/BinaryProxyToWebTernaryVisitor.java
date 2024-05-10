@@ -27,7 +27,7 @@ public class BinaryProxyToWebTernaryVisitor extends JavaVisitor<ExecutionContext
             }
         }
 
-        Expression argument = method.getArguments().getFirst();
+        Expression argument = method.getArguments().get(0);
         doAfterVisit(new BinaryProxyToWebConfigClassVisitor());
         return WEB_OR_PROXY.apply(
                 updateCursor(method),

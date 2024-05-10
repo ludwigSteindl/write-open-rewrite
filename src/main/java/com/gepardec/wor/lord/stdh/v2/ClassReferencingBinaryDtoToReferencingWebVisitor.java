@@ -24,7 +24,7 @@ public class ClassReferencingBinaryDtoToReferencingWebVisitor extends JavaIsoVis
                 .map(J.VariableDeclarations.class::cast)
                 .anyMatch(variableDeclarations -> variableDeclarations
                         .getVariables()
-                        .getFirst()
+                        .get(0)
                         .getSimpleName()
                         .equals(objectFactoryName));
 

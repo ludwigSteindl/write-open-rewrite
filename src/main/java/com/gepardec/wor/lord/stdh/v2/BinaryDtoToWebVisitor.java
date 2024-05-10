@@ -32,7 +32,7 @@ public class BinaryDtoToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
         Optional<J.VariableDeclarations> dtoDeclarations = statements.stream()
                 .filter(J.VariableDeclarations.class::isInstance)
                 .map(J.VariableDeclarations.class::cast)
-                .filter(variableDeclarations -> variableDeclarations.getVariables().getFirst().getSimpleName().equals(variableName))
+                .filter(variableDeclarations -> variableDeclarations.getVariables().get(0).getSimpleName().equals(variableName))
                 .filter(variableDeclarations -> !variableDeclarations.getTypeExpression().toString().equals("Laqamhsu"))
                 .findFirst();
 

@@ -13,7 +13,7 @@ public class BinaryStdhToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
     private static final String STDH_GETTER_NAME = "getOmStandardRequestHeader";
 
     private static final JavaTemplate STDH_SETTER = JavaTemplate.builder(
-            STR."#{}.\{STDH_GETTER_NAME}().#{}(#{});"
+            "#{}.getOmStandardRequestHeader().#{}(#{});"
     ).build();
 
     @Override
@@ -30,7 +30,7 @@ public class BinaryStdhToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
             return method;
         }
 
-        String argument = method.getArguments().getFirst().printTrimmed(getCursor());
+        String argument = method.getArguments().get(0).printTrimmed(getCursor());
 
         doAfterVisit(new BinaryDtoToWebVisitor(instanceName));
         return STDH_SETTER.apply(updateCursor(method),

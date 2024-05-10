@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
@@ -27,18 +28,22 @@ public class BinaryProxyToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
                             """;
     private final static JavaTemplate IF_INITIALIZATION = JavaTemplate
             .builder(IF_TEMPLATE.formatted("AuMhHostInfoResponseDto #{} = callSvcWeb(#{});"))
+            .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
             .contextSensitive()
             .build();
     private final static JavaTemplate IF_RETURN = JavaTemplate
             .builder(IF_TEMPLATE.formatted("return callSvcWeb(#{});"))
+            .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
             .contextSensitive()
             .build();
     private final static JavaTemplate IF_ASSIGNMENT = JavaTemplate
             .builder(IF_TEMPLATE.formatted("#{} = callSvcWeb(#{});"))
+            .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
             .contextSensitive()
             .build();
     private final JavaTemplate IF_INVOCATION = JavaTemplate
             .builder(IF_TEMPLATE.formatted("callSvcWeb(#{});"))
+            .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
             .contextSensitive()
             .build();
 

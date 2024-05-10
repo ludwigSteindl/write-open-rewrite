@@ -17,9 +17,9 @@ package com.gepardec.wor.lord.call.ifs;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-import org.openrewrite.test.TypeValidation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +31,8 @@ public class BinaryProxyToWebTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new BinaryProxyToWeb()).typeValidationOptions(TypeValidation.none());
+        spec.recipe(new BinaryProxyToWeb())
+            .parser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()));
     }
 
     @DocumentExample
@@ -44,6 +45,8 @@ public class BinaryProxyToWebTest implements RewriteTest {
             """
               package com.gepardec.wor.lord;
               
+              import com.gepardec.wor.lord.stubs.*;
+              
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
                       AuMhHostInfoResponseDto ret = callSvcProxy(req);
@@ -53,17 +56,11 @@ public class BinaryProxyToWebTest implements RewriteTest {
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
                   AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
-              
-              public class AuMhHostInfoResponseDto {
-                  public Integer getCallStatus() {
-                      return null;
-                  }
-              }
-              
-              public class AuMhHostInfoRequestDto {}
               """,
             """
               package com.gepardec.wor.lord;
+              
+              import com.gepardec.wor.lord.stubs.*;
               
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
@@ -79,14 +76,6 @@ public class BinaryProxyToWebTest implements RewriteTest {
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
                   AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
-              
-              public class AuMhHostInfoResponseDto {
-                  public Integer getCallStatus() {
-                      return null;
-                  }
-              }
-              
-              public class AuMhHostInfoRequestDto {}
               """
           )
         );
@@ -101,6 +90,8 @@ public class BinaryProxyToWebTest implements RewriteTest {
             """
               package com.gepardec.wor.lord;
               
+              import com.gepardec.wor.lord.stubs.*;
+              
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
                       AuMhHostInfoResponseDto ret;
@@ -112,17 +103,11 @@ public class BinaryProxyToWebTest implements RewriteTest {
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
                   AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
-              
-              public class AuMhHostInfoResponseDto {
-                  public Integer getCallStatus() {
-                      return null;
-                  }
-              }
-              
-              public class AuMhHostInfoRequestDto {}
               """,
             """
               package com.gepardec.wor.lord;
+              
+              import com.gepardec.wor.lord.stubs.*;
               
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
@@ -140,14 +125,6 @@ public class BinaryProxyToWebTest implements RewriteTest {
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
                   AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
-              
-              public class AuMhHostInfoResponseDto {
-                  public Integer getCallStatus() {
-                      return null;
-                  }
-              }
-              
-              public class AuMhHostInfoRequestDto {}
               """
           )
         );
@@ -163,6 +140,8 @@ public class BinaryProxyToWebTest implements RewriteTest {
             """
               package com.gepardec.wor.lord;
               
+              import com.gepardec.wor.lord.stubs.*;
+              
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
                       AuMhHostInfoResponseDto ret;
@@ -175,17 +154,11 @@ public class BinaryProxyToWebTest implements RewriteTest {
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
                   AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
-              
-              public class AuMhHostInfoResponseDto {
-                  public Integer getCallStatus() {
-                      return null;
-                  }
-              }
-              
-              public class AuMhHostInfoRequestDto {}
               """,
             """
               package com.gepardec.wor.lord;
+              
+              import com.gepardec.wor.lord.stubs.*;
               
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
@@ -208,14 +181,6 @@ public class BinaryProxyToWebTest implements RewriteTest {
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
                   AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
-              
-              public class AuMhHostInfoResponseDto {
-                  public Integer getCallStatus() {
-                      return null;
-                  }
-              }
-              
-              public class AuMhHostInfoRequestDto {}
               """
           )
         );
@@ -230,6 +195,8 @@ public class BinaryProxyToWebTest implements RewriteTest {
             """
               package com.gepardec.wor.lord;
               
+              import com.gepardec.wor.lord.stubs.*;
+              
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
                       AuMhHostInfoRequestDto req2 = null;
@@ -243,17 +210,11 @@ public class BinaryProxyToWebTest implements RewriteTest {
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
                   AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
-              
-              public class AuMhHostInfoResponseDto {
-                  public Integer getCallStatus() {
-                      return null;
-                  }
-              }
-              
-              public class AuMhHostInfoRequestDto {}
               """,
             """
               package com.gepardec.wor.lord;
+              
+              import com.gepardec.wor.lord.stubs.*;
               
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
@@ -277,14 +238,6 @@ public class BinaryProxyToWebTest implements RewriteTest {
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
                   AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
-              
-              public class AuMhHostInfoResponseDto {
-                  public Integer getCallStatus() {
-                      return null;
-                  }
-              }
-              
-              public class AuMhHostInfoRequestDto {}
               """
           )
         );
@@ -299,6 +252,8 @@ public class BinaryProxyToWebTest implements RewriteTest {
             """
               package com.gepardec.wor.lord;
               
+              import com.gepardec.wor.lord.stubs.*;
+              
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
                       AuMhHostInfoRequestDto req2 = null;
@@ -310,17 +265,11 @@ public class BinaryProxyToWebTest implements RewriteTest {
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
                   AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
-              
-              public class AuMhHostInfoResponseDto {
-                  public Integer getCallStatus() {
-                      return null;
-                  }
-              }
-              
-              public class AuMhHostInfoRequestDto {}
               """,
             """
               package com.gepardec.wor.lord;
+              
+              import com.gepardec.wor.lord.stubs.*;
               
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
@@ -342,14 +291,6 @@ public class BinaryProxyToWebTest implements RewriteTest {
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
                   AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
-              
-              public class AuMhHostInfoResponseDto {
-                  public Integer getCallStatus() {
-                      return null;
-                  }
-              }
-              
-              public class AuMhHostInfoRequestDto {}
               """
           )
         );
@@ -364,28 +305,24 @@ public class BinaryProxyToWebTest implements RewriteTest {
             """
               package com.gepardec.wor.lord;
               
+              import com.gepardec.wor.lord.stubs.*;
+              
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
                       AuMhHostInfoRequestDto req2 = null;
                       callSvcProxy(req);
                       callSvcProxy(req2);
-                      return ret;
+                      return null;
                   }
                   
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
                   AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
-              
-              public class AuMhHostInfoResponseDto {
-                  public Integer getCallStatus() {
-                      return null;
-                  }
-              }
-              
-              public class AuMhHostInfoRequestDto {}
               """,
             """
               package com.gepardec.wor.lord;
+              
+              import com.gepardec.wor.lord.stubs.*;
               
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
@@ -401,20 +338,12 @@ public class BinaryProxyToWebTest implements RewriteTest {
                       } else {
                           callSvcProxy(req2);
                       }
-                      return ret;
+                      return null;
                   }
                   
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
                   AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
-              
-              public class AuMhHostInfoResponseDto {
-                  public Integer getCallStatus() {
-                      return null;
-                  }
-              }
-              
-              public class AuMhHostInfoRequestDto {}
               """
           )
         );
@@ -429,28 +358,24 @@ public class BinaryProxyToWebTest implements RewriteTest {
             """
               package com.gepardec.wor.lord;
               
+              import com.gepardec.wor.lord.stubs.*;
+              
               public class Test {
-                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto asd) {
                       return callSvcProxy(asd);
                   }
                   
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
                   AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
-              
-              public class AuMhHostInfoResponseDto {
-                  public Integer getCallStatus() {
-                      return null;
-                  }
-              }
-              
-              public class AuMhHostInfoRequestDto {}
               """,
             """
               package com.gepardec.wor.lord;
               
+              import com.gepardec.wor.lord.stubs.*;
+              
               public class Test {
-                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
+                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto asd) {
                       final boolean useWeb = true;
                       if (useWeb) {
                           return callSvcWeb(asd);
@@ -462,14 +387,6 @@ public class BinaryProxyToWebTest implements RewriteTest {
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
                   AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
-              
-              public class AuMhHostInfoResponseDto {
-                  public Integer getCallStatus() {
-                      return null;
-                  }
-              }
-              
-              public class AuMhHostInfoRequestDto {}
               """
           )
         );
@@ -486,6 +403,8 @@ public class BinaryProxyToWebTest implements RewriteTest {
             """
               package com.gepardec.wor.lord;
               
+              import com.gepardec.wor.lord.stubs.*;
+              
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
                       AuMhHostInfoResponseDto ret = callSvcProxy(req);
@@ -496,17 +415,11 @@ public class BinaryProxyToWebTest implements RewriteTest {
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
                   AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
-              
-              public class AuMhHostInfoResponseDto {
-                  public Integer getCallStatus() {
-                      return null;
-                  }
-              }
-              
-              public class AuMhHostInfoRequestDto {}
               """,
             """
               package com.gepardec.wor.lord;
+              
+              import com.gepardec.wor.lord.stubs.*;
               
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
@@ -527,14 +440,6 @@ public class BinaryProxyToWebTest implements RewriteTest {
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
                   AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
-              
-              public class AuMhHostInfoResponseDto {
-                  public Integer getCallStatus() {
-                      return null;
-                  }
-              }
-              
-              public class AuMhHostInfoRequestDto {}
               """
           )
         );
@@ -549,6 +454,8 @@ public class BinaryProxyToWebTest implements RewriteTest {
             """
               package com.gepardec.wor.lord;
               
+              import com.gepardec.wor.lord.stubs.*;
+                            
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
                       return callSvcProxy(req);
@@ -568,6 +475,8 @@ public class BinaryProxyToWebTest implements RewriteTest {
               """,
             """
               package com.gepardec.wor.lord;
+              
+              import com.gepardec.wor.lord.stubs.*;
               
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
@@ -603,6 +512,8 @@ public class BinaryProxyToWebTest implements RewriteTest {
             """
               package com.gepardec.wor.lord;
               
+              import com.gepardec.wor.lord.stubs.*;
+              
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
                       AuMhHostInfoResponseDto ret = callSvcProxy(req);
@@ -613,17 +524,11 @@ public class BinaryProxyToWebTest implements RewriteTest {
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
                   AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
-              
-              public class AuMhHostInfoResponseDto {
-                  public Integer getCallStatus() {
-                      return null;
-                  }
-              }
-              
-              public class AuMhHostInfoRequestDto {}
               """,
             """
               package com.gepardec.wor.lord;
+              
+              import com.gepardec.wor.lord.stubs.*;
               
               public class Test {
                   public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
@@ -648,14 +553,6 @@ public class BinaryProxyToWebTest implements RewriteTest {
                   AuMhHostInfoResponseDto callSvcProxy(AuMhHostInfoRequestDto req) {return null;}
                   AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
               }
-              
-              public class AuMhHostInfoResponseDto {
-                  public Integer getCallStatus() {
-                      return null;
-                  }
-              }
-              
-              public class AuMhHostInfoRequestDto {}
               """
           )
         );
@@ -669,24 +566,12 @@ public class BinaryProxyToWebTest implements RewriteTest {
             """
               package com.gepardec.wor.lord;
               
+              import com.gepardec.wor.lord.stubs.*;
+              
               public class Test {
-                  public AuMhHostInfoResponseDto getAuMhHostInfo(AuMhHostInfoRequestDto req) {
-                      AuMhHostInfoResponseDto ret = callSvcWeb(req);
-                      return ret;
-                  }
-                  
-                  AuMhHostInfoResponseDto callSvcWeb(AuMhHostInfoRequestDto req) {return null;}
+                private AuMhHostInfoResponseDto response;
               }
-              
-              public class AuMhHostInfoResponseDto {
-                  public Integer getCallStatus() {
-                      return null;
-                  }
-              }
-              
-              public class AuMhHostInfoRequestDto {}
-              """
-          )
+              """)
         );
     }
 }

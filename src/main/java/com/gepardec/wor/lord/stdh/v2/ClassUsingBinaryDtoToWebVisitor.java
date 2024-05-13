@@ -1,19 +1,21 @@
 package com.gepardec.wor.lord.stdh.v2;
 
+import com.gepardec.wor.lord.util.ParserUtil;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.J;
 
-public class ClassReferencingBinaryDtoToReferencingWebVisitor extends JavaIsoVisitor<ExecutionContext> {
+public class ClassUsingBinaryDtoToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
     private String objectFactoryName;
 
-    public ClassReferencingBinaryDtoToReferencingWebVisitor(String objectFactoryName) {
+    public ClassUsingBinaryDtoToWebVisitor(String objectFactoryName) {
         this.objectFactoryName = objectFactoryName;
     }
 
     private static JavaTemplate NEW_OBJECT_FACTORY = JavaTemplate
             .builder("private static final ObjectFactory #{} = new ObjectFactory();")
+            .javaParser(ParserUtil.createParserWithRuntimeClasspath())
             .build();
 
     @Override
@@ -31,7 +33,6 @@ public class ClassReferencingBinaryDtoToReferencingWebVisitor extends JavaIsoVis
         if (hasObjectFactory) {
             return classDecl;
         }
-
 
         J.ClassDeclaration classDeclaration = NEW_OBJECT_FACTORY.apply(
                 updateCursor(classDecl),

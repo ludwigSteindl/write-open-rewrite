@@ -1,5 +1,6 @@
 package com.gepardec.wor.lord.stdh.v2;
 
+import com.gepardec.wor.lord.util.ParserUtil;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
@@ -11,19 +12,19 @@ import java.util.Optional;
 
 public class BinaryDtoToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
     private String variableName;
+    private boolean usesStdh;
     private static final String OBJECT_FACTORY_NAME = "objectFactory";
 
-    private static final String NEW_WEB_DTO_TEMPLATE = """
-            Laqamhsu #{} = new Laqamhsu();
-            #{}.setOmStandardRequestHeader(%s.createOmStandardRequestHeader());
-            """;
+    private static final String NEW_WEB_DTO = "Laqamhsu #{} = new Laqamhsu();";
 
-    private static final JavaTemplate NEW_WEB_DTO = JavaTemplate
-            .builder(NEW_WEB_DTO_TEMPLATE.formatted(OBJECT_FACTORY_NAME))
-            .build();
+    public static final String SET_NEW_STDH_TEMPLATE = "\n#{}.setOmStandardRequestHeader(%s.createOmStandardRequestHeader());";
+    private static final String NEW_WEB_DTO_WITH_STDH_TEMPLATE = NEW_WEB_DTO + SET_NEW_STDH_TEMPLATE;
 
-    public BinaryDtoToWebVisitor(String variableName) {
+
+
+    public BinaryDtoToWebVisitor(String variableName, boolean usesStdh) {
         this.variableName = variableName;
+        this.usesStdh = usesStdh;
     }
 
     @Override
@@ -40,14 +41,32 @@ public class BinaryDtoToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
             return method;
         }
 
-        doAfterVisit(new ClassReferencingBinaryDtoToReferencingWebVisitor(OBJECT_FACTORY_NAME));
+        if (usesStdh) {
+            doAfterVisit(new ClassUsingBinaryDtoToWebVisitor(OBJECT_FACTORY_NAME));
+        }
 
-        return NEW_WEB_DTO.apply(
+        return getCreateDtoJavaTemplate().apply(
                 updateCursor(method),
                 dtoDeclarations.get().getCoordinates().replace(),
-                variableName,
-                variableName
+                getCreateDtoJavaTemplateParams()
                 );
+    }
+
+    private Object[] getCreateDtoJavaTemplateParams() {
+        return usesStdh ?  new Object[]{variableName, variableName} : new Object[]{variableName};
+    }
+
+    private JavaTemplate getCreateDtoJavaTemplate() {
+        String template = usesStdh ? String.format(NEW_WEB_DTO_WITH_STDH_TEMPLATE, OBJECT_FACTORY_NAME) : NEW_WEB_DTO;
+        return javaTemplateOf(template);
+    }
+
+    private static JavaTemplate javaTemplateOf(String template) {
+        return JavaTemplate
+                .builder(template)
+                .javaParser(ParserUtil.createParserWithRuntimeClasspath())
+                .contextSensitive()
+                .build();
     }
 
 }

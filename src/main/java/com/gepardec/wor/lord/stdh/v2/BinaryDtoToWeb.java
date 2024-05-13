@@ -1,11 +1,10 @@
 package com.gepardec.wor.lord.stdh.v2;
 
-import com.gepardec.wor.lord.stdh.v2.BinaryStdhToWebVisitor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 
-public class BinaryStdhToWeb extends Recipe {
+public class BinaryDtoToWeb extends Recipe {
     @Override
     public String getDisplayName() {
         // language=markdown
@@ -19,6 +18,6 @@ public class BinaryStdhToWeb extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new BinaryStdhToWebVisitor();
+        return new BinaryDtoToWebVisitor();
     }
 }

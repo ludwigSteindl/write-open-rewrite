@@ -4,16 +4,11 @@ import com.gepardec.wor.lord.call.ternaries.BinaryProxyToWebTernaryAndClassTest;
 import com.gepardec.wor.lord.util.ParserUtil;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-import org.openrewrite.Parser;
-import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.nio.file.Path;
-import java.util.List;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -24,7 +19,7 @@ public class BinaryStdhToWebTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .recipe(new BinaryStdhToWeb())
+          .recipe(new BinaryDtoToWeb())
           .typeValidationOptions(TypeValidation.none())
           .parser(ParserUtil.createParserWithRuntimeClasspath());
     }

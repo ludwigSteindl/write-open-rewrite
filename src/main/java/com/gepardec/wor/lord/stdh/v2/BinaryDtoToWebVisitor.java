@@ -5,68 +5,52 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.Statement;
+import org.openrewrite.java.tree.JavaType;
 
 import java.util.List;
-import java.util.Optional;
 
 public class BinaryDtoToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
-    private String variableName;
-    private boolean usesStdh;
-    private static final String OBJECT_FACTORY_NAME = "objectFactory";
 
-    private static final String NEW_WEB_DTO = "Laqamhsu #{} = new Laqamhsu();";
+    private static final List<String> STDH_SETTERS_NAMES = List.of("setZvst");
+    private static final String STDH_GETTER_NAME = "getOmStandardRequestHeader";
 
-    public static final String SET_NEW_STDH_TEMPLATE = "\n#{}.setOmStandardRequestHeader(%s.createOmStandardRequestHeader());";
-    private static final String NEW_WEB_DTO_WITH_STDH_TEMPLATE = NEW_WEB_DTO + SET_NEW_STDH_TEMPLATE;
+    private static final String BINARY_DTO_NAME = "LaqamhsuDto";
 
+    private static final JavaTemplate STDH_SETTER = JavaTemplate
+            .builder("#{}.getOmStandardRequestHeader().#{}(#{});")
+            .javaParser(ParserUtil.createParserWithRuntimeClasspath())
+            .contextSensitive()
+            .build();
 
-
-    public BinaryDtoToWebVisitor(String variableName, boolean usesStdh) {
-        this.variableName = variableName;
-        this.usesStdh = usesStdh;
-    }
 
     @Override
-    public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-        List<Statement> statements = method.getBody().getStatements();
-        Optional<J.VariableDeclarations> dtoDeclarations = statements.stream()
-                .filter(J.VariableDeclarations.class::isInstance)
-                .map(J.VariableDeclarations.class::cast)
-                .filter(variableDeclarations -> variableDeclarations.getVariables().get(0).getSimpleName().equals(variableName))
-                .filter(variableDeclarations -> !variableDeclarations.getTypeExpression().toString().equals("Laqamhsu"))
-                .findFirst();
+    public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+        method = super.visitMethodInvocation(method, ctx);
 
-        if (dtoDeclarations.isEmpty()) {
+        JavaType methodType = method.getSelect().getType();
+        if (methodType == null || !methodType.toString().contains(BINARY_DTO_NAME)) {
             return method;
         }
 
-        if (usesStdh) {
-            doAfterVisit(new ClassUsingBinaryDtoToWebVisitor(OBJECT_FACTORY_NAME));
+        String instanceName = method.getSelect().toString();
+        if (instanceName.contains(STDH_GETTER_NAME)) {
+            return method;
         }
 
-        return getCreateDtoJavaTemplate().apply(
-                updateCursor(method),
-                dtoDeclarations.get().getCoordinates().replace(),
-                getCreateDtoJavaTemplateParams()
-                );
-    }
+        String methodName = method.getSimpleName();
+        if (!STDH_SETTERS_NAMES.contains(methodName)) {
+            doAfterVisit(new BinaryDtoInitToWebVisitor(instanceName, false));
+            return method;
+        }
 
-    private Object[] getCreateDtoJavaTemplateParams() {
-        return usesStdh ?  new Object[]{variableName, variableName} : new Object[]{variableName};
-    }
+        doAfterVisit(new BinaryDtoInitToWebVisitor(instanceName, true));
 
-    private JavaTemplate getCreateDtoJavaTemplate() {
-        String template = usesStdh ? String.format(NEW_WEB_DTO_WITH_STDH_TEMPLATE, OBJECT_FACTORY_NAME) : NEW_WEB_DTO;
-        return javaTemplateOf(template);
+        String argument = method.getArguments().get(0).printTrimmed(getCursor());
+        return STDH_SETTER.apply(updateCursor(method),
+                method.getCoordinates().replace(),
+                instanceName,
+                methodName,
+                argument
+        );
     }
-
-    private static JavaTemplate javaTemplateOf(String template) {
-        return JavaTemplate
-                .builder(template)
-                .javaParser(ParserUtil.createParserWithRuntimeClasspath())
-                .contextSensitive()
-                .build();
-    }
-
 }

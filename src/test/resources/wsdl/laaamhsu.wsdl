@@ -1,0 +1,248 @@
+<?xml version='1.0' encoding='UTF-8'?><wsdl:definitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://laaamhsu.a02.lgkk.stp.sozvers.at/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ns1="http://schemas.xmlsoap.org/soap/http" name="LaaamhsuService" targetNamespace="http://laaamhsu.a02.lgkk.stp.sozvers.at/">
+    <wsdl:types>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://laaamhsu.a02.lgkk.stp.sozvers.at/" elementFormDefault="unqualified" targetNamespace="http://laaamhsu.a02.lgkk.stp.sozvers.at/" version="1.0">
+
+            <xs:element name="binaryExecuteService" type="tns:binaryExecuteService"/>
+
+            <xs:element name="binaryExecuteServiceResponse" type="tns:binaryExecuteServiceResponse"/>
+
+            <xs:element name="executeService" type="tns:executeService"/>
+
+            <xs:element name="executeServiceResponse" type="tns:executeServiceResponse"/>
+
+            <xs:element name="serviceAlias" type="tns:serviceAlias"/>
+
+            <xs:element name="serviceAliasResponse" type="tns:serviceAliasResponse"/>
+
+            <xs:complexType name="executeService">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="arg0" type="tns:laqamhsu"/>
+                </xs:sequence>
+            </xs:complexType>
+
+            <xs:complexType name="laqamhsu">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="aufnahmezahl" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="kzAu" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="kzKh" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="kzMh" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="kzVsau" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="kzVsmh" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="lbisDat" nillable="true" type="xs:date"/>
+                    <xs:element minOccurs="0" name="lvonDat" nillable="true" type="xs:date"/>
+                    <xs:element minOccurs="0" name="mxcb" type="tns:mxcb"/>
+                    <xs:element minOccurs="0" name="restartflag" nillable="true" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="restartid" type="tns:laqamhsuRestartid"/>
+                    <xs:element minOccurs="0" name="stdReqHeader" type="tns:laqamhsuStdReqHeader"/>
+                    <xs:element minOccurs="0" name="stdh" type="tns:omStandardRequestHeader"/>
+                    <xs:element minOccurs="0" name="versicherungsnummer" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="vpnr" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+
+            <xs:complexType name="mxcb">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="BTransactioncontrol" nillable="true" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="COriginatorid" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="CReserved" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="CServicealias" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="CTag" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="CVersion" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="NApplreturncode" nillable="true" type="xs:int"/>
+                    <xs:element minOccurs="0" name="NDatalength" nillable="true" type="xs:int"/>
+                    <xs:element minOccurs="0" name="NServicestatus" nillable="true" type="xs:int"/>
+                    <xs:element minOccurs="0" name="NStartofdata" nillable="true" type="xs:int"/>
+                </xs:sequence>
+            </xs:complexType>
+
+            <xs:complexType name="laqamhsuRestartid">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="restartidDatum" nillable="true" type="xs:date"/>
+                    <xs:element minOccurs="0" name="restartidLgebiet" nillable="true" type="xs:int"/>
+                    <xs:element minOccurs="0" name="restartidLid" nillable="true" type="xs:long"/>
+                </xs:sequence>
+            </xs:complexType>
+
+            <xs:complexType name="laqamhsuStdReqHeader">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="aktion" type="xs:unsignedShort"/>
+                    <xs:element minOccurs="0" name="bearbgrund" type="xs:string"/>
+                    <xs:element minOccurs="0" name="berechtpruefung" type="xs:unsignedShort"/>
+                    <xs:element minOccurs="0" name="debuglevel" type="xs:int"/>
+                    <xs:element minOccurs="0" name="idapp" type="xs:string"/>
+                    <xs:element minOccurs="0" name="orgeinheitid" type="xs:string"/>
+                    <xs:element minOccurs="0" name="qbid" type="xs:string"/>
+                    <xs:element minOccurs="0" name="systemmodus" type="xs:unsignedShort"/>
+                    <xs:element minOccurs="0" name="traegerid" type="xs:string"/>
+                    <xs:element minOccurs="0" name="transactionid" type="xs:long"/>
+                    <xs:element minOccurs="0" name="verarbeitungsmodus" type="xs:unsignedShort"/>
+                    <xs:element minOccurs="0" name="vers" type="xs:string"/>
+                    <xs:element minOccurs="0" name="zvst" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+
+            <xs:complexType name="omStandardRequestHeader">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="aktion" type="xs:unsignedShort"/>
+                    <xs:element minOccurs="0" name="bearbgrund" type="xs:string"/>
+                    <xs:element minOccurs="0" name="berechtpruefung" type="xs:unsignedShort"/>
+                    <xs:element minOccurs="0" name="debuglevel" type="xs:int"/>
+                    <xs:element minOccurs="0" name="idapp" type="xs:string"/>
+                    <xs:element minOccurs="0" name="orgeinheitid" type="xs:string"/>
+                    <xs:element minOccurs="0" name="qbid" type="xs:string"/>
+                    <xs:element minOccurs="0" name="systemmodus" type="xs:unsignedShort"/>
+                    <xs:element minOccurs="0" name="traegerid" type="xs:string"/>
+                    <xs:element minOccurs="0" name="transactionid" type="xs:long"/>
+                    <xs:element minOccurs="0" name="verarbeitungsmodus" type="xs:unsignedShort"/>
+                    <xs:element minOccurs="0" name="vers" type="xs:string"/>
+                    <xs:element minOccurs="0" name="zvst" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+
+            <xs:complexType name="executeServiceResponse">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="return" type="tns:lasamhsu"/>
+                </xs:sequence>
+            </xs:complexType>
+
+            <xs:complexType name="lasamhsu">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="anzahlDaten" nillable="true" type="xs:int"/>
+                    <xs:element minOccurs="0" name="anzahlLf" nillable="true" type="xs:int"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="daten" nillable="true" type="tns:lasamhsuDaten"/>
+                    <xs:element minOccurs="0" name="fehler" type="tns:omFehler"/>
+                    <xs:element minOccurs="0" name="fehlerpaket" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="mxcb" type="tns:mxcb"/>
+                    <xs:element minOccurs="0" name="restartid" type="tns:lasamhsuRestartid"/>
+                </xs:sequence>
+            </xs:complexType>
+
+            <xs:complexType name="lasamhsuDaten">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="information" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="satzart" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+
+            <xs:complexType name="omFehler">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="fehlerpaket" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+
+            <xs:complexType name="lasamhsuRestartid">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="restartidDatum" nillable="true" type="xs:date"/>
+                    <xs:element minOccurs="0" name="restartidLgebiet" nillable="true" type="xs:int"/>
+                    <xs:element minOccurs="0" name="restartidLid" nillable="true" type="xs:long"/>
+                </xs:sequence>
+            </xs:complexType>
+
+            <xs:complexType name="meldung">
+                <xs:sequence/>
+            </xs:complexType>
+
+            <xs:complexType name="serviceAlias">
+                <xs:sequence/>
+            </xs:complexType>
+
+            <xs:complexType name="serviceAliasResponse">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="return" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+
+            <xs:complexType name="binaryExecuteService">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="arg0" type="xs:base64Binary"/>
+                </xs:sequence>
+            </xs:complexType>
+
+            <xs:complexType name="binaryExecuteServiceResponse">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="return" type="xs:base64Binary"/>
+                </xs:sequence>
+            </xs:complexType>
+
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="binaryExecuteServiceResponse">
+        <wsdl:part element="tns:binaryExecuteServiceResponse" name="parameters">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="executeService">
+        <wsdl:part element="tns:executeService" name="parameters">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="executeServiceResponse">
+        <wsdl:part element="tns:executeServiceResponse" name="parameters">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="serviceAliasResponse">
+        <wsdl:part element="tns:serviceAliasResponse" name="parameters">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="binaryExecuteService">
+        <wsdl:part element="tns:binaryExecuteService" name="parameters">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="serviceAlias">
+        <wsdl:part element="tns:serviceAlias" name="parameters">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:portType name="Laaamhsu">
+        <wsdl:operation name="executeService">
+            <wsdl:input message="tns:executeService" name="executeService">
+            </wsdl:input>
+            <wsdl:output message="tns:executeServiceResponse" name="executeServiceResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="serviceAlias">
+            <wsdl:input message="tns:serviceAlias" name="serviceAlias">
+            </wsdl:input>
+            <wsdl:output message="tns:serviceAliasResponse" name="serviceAliasResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="binaryExecuteService">
+            <wsdl:input message="tns:binaryExecuteService" name="binaryExecuteService">
+            </wsdl:input>
+            <wsdl:output message="tns:binaryExecuteServiceResponse" name="binaryExecuteServiceResponse">
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="LaaamhsuServiceSoapBinding" type="tns:Laaamhsu">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="executeService">
+            <soap:operation soapAction="" style="document"/>
+            <wsdl:input name="executeService">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="executeServiceResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="serviceAlias">
+            <soap:operation soapAction="" style="document"/>
+            <wsdl:input name="serviceAlias">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="serviceAliasResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="binaryExecuteService">
+            <soap:operation soapAction="" style="document"/>
+            <wsdl:input name="binaryExecuteService">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="binaryExecuteServiceResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="LaaamhsuService">
+        <wsdl:port binding="tns:LaaamhsuServiceSoapBinding" name="LaaamhsuPort">
+            <soap:address location="http://localhost:8080/lgkk-a02-service/Laaamhsu"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

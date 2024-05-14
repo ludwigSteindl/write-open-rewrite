@@ -1,6 +1,8 @@
-package com.gepardec.wor.lord.stdh.v2;
+package com.gepardec.wor.lord.stdh.v2.visitors;
 
+import com.gepardec.wor.lord.stdh.v2.common.Accumulator;
 import com.gepardec.wor.lord.util.ParserUtil;
+import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
@@ -22,13 +24,17 @@ public class BinaryDtoToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
             .contextSensitive()
             .build();
 
+    private Accumulator accumulator;
+
+    public BinaryDtoToWebVisitor(Accumulator accumulator) {
+        this.accumulator = accumulator;
+    }
 
     @Override
     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
         method = super.visitMethodInvocation(method, ctx);
 
-        JavaType methodType = method.getSelect().getType();
-        if (methodType == null || !methodType.toString().contains(BINARY_DTO_NAME)) {
+        if (!hasCorrespondingWsdlType(method)) {
             return method;
         }
 
@@ -52,5 +58,18 @@ public class BinaryDtoToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
                 methodName,
                 argument
         );
+    }
+
+    private boolean hasCorrespondingWsdlType(J.MethodInvocation method) {
+        return accumulator.getIOTypesShort().stream()
+                .anyMatch(type -> getWsdlTypeFromBinary(method).contains(type));
+    }
+
+    private static @NotNull String getWsdlTypeFromBinary(J.MethodInvocation method) {
+        JavaType type = method.getSelect().getType();
+        if (type == null) {
+            return "";
+        }
+        return type.toString().replaceAll("Dto", "");
     }
 }

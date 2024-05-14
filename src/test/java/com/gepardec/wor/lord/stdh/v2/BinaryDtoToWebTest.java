@@ -2,6 +2,8 @@ package com.gepardec.wor.lord.stdh.v2;
 
 import com.gepardec.wor.helpers.SourceFileContents;
 import com.gepardec.wor.lord.call.ternaries.BinaryProxyToWebTernaryAndClassTest;
+import com.gepardec.wor.lord.stdh.v2.recipes.BinaryDtoToWeb;
+import com.gepardec.wor.lord.stdh.v2.recipes.BinaryDtoToWsdl2JavaServiceDto;
 import com.gepardec.wor.lord.util.ParserUtil;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
@@ -138,7 +140,7 @@ public class BinaryDtoToWebTest implements RewriteTest {
     public void withWsdl() {
         Stream<SourceFile> sourceFiles = JavaParser.fromJavaVersion().build().parse(new SourceFileContents().forWsdl2JavaService("laaamhsu"));
         LargeSourceSet sourceSet = new InMemoryLargeSourceSet(sourceFiles.toList());
-        RecipeRun testResults = new WsdlScanner().run(sourceSet, new InMemoryExecutionContext());
+        RecipeRun testResults = new BinaryDtoToWsdl2JavaServiceDto().run(sourceSet, new InMemoryExecutionContext());
     }
 }
 

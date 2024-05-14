@@ -1,4 +1,4 @@
-package com.gepardec.wor.lord.stdh.v2;
+package com.gepardec.wor.lord.stdh.v2.visitors;
 
 import com.gepardec.wor.lord.util.ParserUtil;
 import org.openrewrite.ExecutionContext;
@@ -19,9 +19,6 @@ public class BinaryDtoInitToWebVisitor extends JavaIsoVisitor<ExecutionContext> 
 
     public static final String SET_NEW_STDH_TEMPLATE = "\n#{}.setOmStandardRequestHeader(%s.createOmStandardRequestHeader());";
     private static final String NEW_WEB_DTO_WITH_STDH_TEMPLATE = NEW_WEB_DTO + SET_NEW_STDH_TEMPLATE;
-
-    public BinaryDtoInitToWebVisitor() {
-    }
 
 
     public BinaryDtoInitToWebVisitor(String variableName, boolean usesStdh) {

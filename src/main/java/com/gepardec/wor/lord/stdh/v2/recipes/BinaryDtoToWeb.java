@@ -1,8 +1,12 @@
-package com.gepardec.wor.lord.stdh.v2;
+package com.gepardec.wor.lord.stdh.v2.recipes;
 
+import com.gepardec.wor.lord.stdh.v2.common.Accumulator;
+import com.gepardec.wor.lord.stdh.v2.visitors.BinaryDtoToWebVisitor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+
+import java.util.List;
 
 public class BinaryDtoToWeb extends Recipe {
     @Override
@@ -18,6 +22,6 @@ public class BinaryDtoToWeb extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new BinaryDtoToWebVisitor();
+        return new BinaryDtoToWebVisitor(Accumulator.of("laaamhsu", List.of("at.sozvers.stp.lgkk.a02.laaamhsu.Laqamhsu", "at.sozvers.stp.lgkk.a02.laaamhsu.Lasamhsu")));
     }
 }

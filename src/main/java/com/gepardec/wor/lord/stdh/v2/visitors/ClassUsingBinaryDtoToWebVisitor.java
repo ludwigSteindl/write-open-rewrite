@@ -1,4 +1,4 @@
-package com.gepardec.wor.lord.stdh.v2;
+package com.gepardec.wor.lord.stdh.v2.visitors;
 
 import com.gepardec.wor.lord.util.ParserUtil;
 import org.openrewrite.ExecutionContext;

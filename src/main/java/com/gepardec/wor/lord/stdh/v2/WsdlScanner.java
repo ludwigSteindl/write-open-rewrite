@@ -9,6 +9,7 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.tree.J;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -26,9 +27,8 @@ public class WsdlScanner extends ScanningRecipe<WsdlScanner.Accumulator> {
         return "Adds the specified line to RELEASE.md.";
     }
 
-
     public static class Accumulator {
-        Map<String, List<String>> webservicesMap = new HashMap<>();
+        List<Wsdl2JavaService> wsdl2JavaServices = new LinkedList<>();
     }
 
     @Override
@@ -46,7 +46,7 @@ public class WsdlScanner extends ScanningRecipe<WsdlScanner.Accumulator> {
                     return classDeclaration;
                 }
 
-                String serviceName = classDeclaration.getSimpleName();
+                String serviceAlias = classDeclaration.getSimpleName();
 
                 List<J.MethodDeclaration> methods = classDeclaration.getBody().getStatements().stream()
                         .filter(J.MethodDeclaration.class::isInstance)
@@ -65,7 +65,7 @@ public class WsdlScanner extends ScanningRecipe<WsdlScanner.Accumulator> {
                         .map(m -> m.getReturnTypeExpression().toString())
                                 .collect(Collectors.toList());
 
-                acc.webservicesMap.put(serviceName, List.of(requestTypes, responseTypes).stream().flatMap(List::stream).collect(Collectors.toList()));
+                acc.wsdl2JavaServices.add(new Wsdl2JavaService(serviceAlias, requestTypes, responseTypes));
 
                 return classDeclaration;
             }

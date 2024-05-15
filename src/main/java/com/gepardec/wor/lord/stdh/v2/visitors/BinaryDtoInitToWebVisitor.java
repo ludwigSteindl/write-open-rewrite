@@ -3,11 +3,14 @@ package com.gepardec.wor.lord.stdh.v2.visitors;
 import com.gepardec.wor.lord.stdh.v2.common.Accumulator;
 import com.gepardec.wor.lord.util.ParserUtil;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Tree;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.RemoveImport;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Statement;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +18,7 @@ public class BinaryDtoInitToWebVisitor extends JavaIsoVisitor<ExecutionContext> 
     private String variableName;
     private boolean usesStdh;
     private Accumulator accumulator;
+
     private static final String OBJECT_FACTORY_NAME = "objectFactory";
 
     private static final String NEW_WEB_DTO = "#{} #{} = new #{}();";
@@ -31,6 +35,7 @@ public class BinaryDtoInitToWebVisitor extends JavaIsoVisitor<ExecutionContext> 
 
     @Override
     public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+        method = super.visitMethodDeclaration(method, ctx);
         List<Statement> statements = method.getBody().getStatements();
         Optional<J.VariableDeclarations> dtoDeclarationsOptional = statements.stream()
                 .filter(J.VariableDeclarations.class::isInstance)
@@ -43,9 +48,9 @@ public class BinaryDtoInitToWebVisitor extends JavaIsoVisitor<ExecutionContext> 
         }
 
         J.VariableDeclarations dtoDeclarations = dtoDeclarationsOptional.get();
-        String type = dtoDeclarations.getType().toString();
+        String binaryType = dtoDeclarations.getType().toString();
 
-        Optional<String> wsdlTypeOptional = accumulator.getWsdlTypeFromBinary(type);
+        Optional<String> wsdlTypeOptional = accumulator.getWsdlTypeFromBinary(binaryType);
 
         if (wsdlTypeOptional.isEmpty()) {
             return method;
@@ -54,15 +59,17 @@ public class BinaryDtoInitToWebVisitor extends JavaIsoVisitor<ExecutionContext> 
         String shortWsdlType = Accumulator.shortNameOfFullyQualified(wsdlType);
 
         if (usesStdh) {
-            doAfterVisit(new ClassUsingBinaryDtoToWebVisitor(OBJECT_FACTORY_NAME));
+            doAfterVisit(new ClassUsingBinaryDtoToWebVisitor(OBJECT_FACTORY_NAME, packageOf(wsdlType)));
         }
 
         maybeAddImport(wsdlType);
-        return getCreateDtoJavaTemplate(wsdlType).apply(
+        doAfterVisit(new RemoveImport<>(binaryType, true));
+        J.MethodDeclaration declarationUsingWebDto = getCreateDtoJavaTemplate(wsdlType).apply(
                 updateCursor(method),
                 dtoDeclarations.getCoordinates().replace(),
                 getCreateDtoJavaTemplateParams(shortWsdlType)
                 );
+        return declarationUsingWebDto;
     }
 
     private Object[] getCreateDtoJavaTemplateParams(String shortWsdlType) {
@@ -83,6 +90,10 @@ public class BinaryDtoInitToWebVisitor extends JavaIsoVisitor<ExecutionContext> 
                 .imports(wsdlType)
                 .contextSensitive()
                 .build();
+    }
+
+    private static String packageOf(String type) {
+        return type.substring(0, type.lastIndexOf('.'));
     }
 
 }

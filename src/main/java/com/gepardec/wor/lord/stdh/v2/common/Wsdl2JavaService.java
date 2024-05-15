@@ -1,6 +1,7 @@
 package com.gepardec.wor.lord.stdh.v2.common;
 
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -15,8 +16,8 @@ public class Wsdl2JavaService {
     public Wsdl2JavaService(String serviceAlias, List<String> requestTypes, List<String> responseTypes) {
 
         this.serviceAlias = serviceAlias.toLowerCase();
-        this.requestTypes = requestTypes;
-        this.responseTypes = responseTypes;
+        this.requestTypes = excludeNonDtoTypes(requestTypes);
+        this.responseTypes = excludeNonDtoTypes(responseTypes);
     }
 
     public List<String> getIOTypes() {
@@ -33,18 +34,16 @@ public class Wsdl2JavaService {
     private Stream<String> getIOTypes(List<String> classes) {
         return classes.stream()
                 .filter(className -> className.toLowerCase().contains(PACKAGE_PREFIX));
+    }
 
+    private static List<String> excludeNonDtoTypes(List<String> types) {
+        Pattern packagePrefix = Pattern.compile("^" + PACKAGE_PREFIX);
+        return types.stream()
+                .filter(packagePrefix.asPredicate())
+                .collect(Collectors.toList());
     }
 
     public String getServiceAlias() {
         return serviceAlias;
-    }
-
-    public List<String> getRequestTypes() {
-        return requestTypes;
-    }
-
-    public List<String> getResponseTypes() {
-        return responseTypes;
     }
 }

@@ -4,7 +4,6 @@ import com.gepardec.wor.helpers.SourceFileContents;
 import com.gepardec.wor.lord.call.ternaries.BinaryProxyToWebTernaryAndClassTest;
 import com.gepardec.wor.lord.stdh.v2.recipes.BinaryDtoToWsdl2JavaServiceDto;
 import com.gepardec.wor.lord.util.ParserUtil;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
@@ -38,9 +37,6 @@ public class BinaryDtoToWebTest implements RewriteTest {
           package com.gepardec.wor.lord;
           
           import com.gepardec.wor.lord.stubs.LaqamhsuDto;
-          import com.gepardec.wor.lord.stubs.Laqamhsu;
-          import com.gepardec.wor.lord.stubs.ObjectFactory;
-          import com.gepardec.wor.lord.stubs.OmStandardRequestHeader;
           
           public class Test {
               public void test() {
@@ -52,10 +48,8 @@ public class BinaryDtoToWebTest implements RewriteTest {
             """
             package com.gepardec.wor.lord;
             
-            import com.gepardec.wor.lord.stubs.LaqamhsuDto;
-            import com.gepardec.wor.lord.stubs.Laqamhsu;
-            import com.gepardec.wor.lord.stubs.ObjectFactory;
-            import com.gepardec.wor.lord.stubs.OmStandardRequestHeader;
+            import at.sozvers.stp.lgkk.a02.laaamhsu.Laqamhsu;
+            import at.sozvers.stp.lgkk.a02.laaamhsu.ObjectFactory;
             
             public class Test {
                 private static final ObjectFactory objectFactory = new ObjectFactory();
@@ -79,8 +73,6 @@ public class BinaryDtoToWebTest implements RewriteTest {
           package com.gepardec.wor.lord;
           
           import com.gepardec.wor.lord.stubs.Laqaumv4Dto;
-          import com.gepardec.wor.lord.stubs.ObjectFactory;
-          import com.gepardec.wor.lord.stubs.OmStandardRequestHeader;
           
           public class Test {
               public void test() {
@@ -93,9 +85,7 @@ public class BinaryDtoToWebTest implements RewriteTest {
             package com.gepardec.wor.lord;
             
             import at.sozvers.stp.lgkk.a02.laaaumv4.Laqaumv4;
-            import com.gepardec.wor.lord.stubs.Laqaumv4Dto;
-            import com.gepardec.wor.lord.stubs.ObjectFactory;
-            import com.gepardec.wor.lord.stubs.OmStandardRequestHeader;
+            import at.sozvers.stp.lgkk.a02.laaaumv4.ObjectFactory;
             
             public class Test {
                 private static final ObjectFactory objectFactory = new ObjectFactory();
@@ -118,9 +108,7 @@ public class BinaryDtoToWebTest implements RewriteTest {
           package com.gepardec.wor.lord;
           
           import com.gepardec.wor.lord.stubs.LaqamhsuDto;
-          import com.gepardec.wor.lord.stubs.Laqamhsu;
-          import com.gepardec.wor.lord.stubs.ObjectFactory;
-          import com.gepardec.wor.lord.stubs.OmStandardRequestHeader;
+          import at.sozvers.stp.lgkk.a02.laaamhsu.ObjectFactory;
           
           public class Test {
               private static final ObjectFactory objectFactory = new ObjectFactory();
@@ -133,10 +121,8 @@ public class BinaryDtoToWebTest implements RewriteTest {
             """
             package com.gepardec.wor.lord;
             
-            import com.gepardec.wor.lord.stubs.LaqamhsuDto;
-            import com.gepardec.wor.lord.stubs.Laqamhsu;
-            import com.gepardec.wor.lord.stubs.ObjectFactory;
-            import com.gepardec.wor.lord.stubs.OmStandardRequestHeader;
+            import at.sozvers.stp.lgkk.a02.laaamhsu.Laqamhsu;
+            import at.sozvers.stp.lgkk.a02.laaamhsu.ObjectFactory;
             
             public class Test {
                 private static final ObjectFactory objectFactory = new ObjectFactory();
@@ -159,10 +145,7 @@ public class BinaryDtoToWebTest implements RewriteTest {
           package com.gepardec.wor.lord;
           
           import com.gepardec.wor.lord.stubs.LaqamhsuDto;
-          import com.gepardec.wor.lord.stubs.Laqamhsu;
-          import com.gepardec.wor.lord.stubs.ObjectFactory;
-          import com.gepardec.wor.lord.stubs.OmStandardRequestHeader;
-          
+
           public class Test {
               public void test() {
                   LaqamhsuDto reqDto = new LaqamhsuDto();
@@ -173,10 +156,7 @@ public class BinaryDtoToWebTest implements RewriteTest {
             """
             package com.gepardec.wor.lord;
             
-            import com.gepardec.wor.lord.stubs.LaqamhsuDto;
-            import com.gepardec.wor.lord.stubs.Laqamhsu;
-            import com.gepardec.wor.lord.stubs.ObjectFactory;
-            import com.gepardec.wor.lord.stubs.OmStandardRequestHeader;
+            import at.sozvers.stp.lgkk.a02.laaamhsu.Laqamhsu;
             
             public class Test {
                 public void test() {
@@ -196,15 +176,31 @@ public class BinaryDtoToWebTest implements RewriteTest {
           java("""
           package com.gepardec.wor.lord;
           
-          import com.gepardec.wor.lord.stubs.LaqamhsuDto;
-          import com.gepardec.wor.lord.stubs.Laqamhsu;
-          import com.gepardec.wor.lord.stubs.ObjectFactory;
-          import com.gepardec.wor.lord.stubs.OmStandardRequestHeader;
-          
+          import com.gepardec.wor.lord.stubs.LaqaumwtDto;
+
           public class Test {
               public void test() {
                   LaqaumwtDto reqDto = new LaqaumwtDto();
                   reqDto.setDatenv3("blubb");
+              }
+          }
+          """)
+        );
+    }
+
+    @DocumentExample
+    @Test
+    public void whenTypeUsedByWsdlServiceButNoDto_thenDoNothing() {
+        LOG.info("Start Test");
+        rewriteRunWithWsdlClasses(
+          //language=java
+          java("""
+          package com.gepardec.wor.lord;
+          
+          public class Test {
+              public void test() {
+                  String reqDto = new String();
+                  reqDto.getClass();
               }
           }
           """)
@@ -218,11 +214,6 @@ public class BinaryDtoToWebTest implements RewriteTest {
           //language=java
           java("""
           package com.gepardec.wor.lord;
-          
-          import com.gepardec.wor.lord.stubs.LaqamhsuDto;
-          import com.gepardec.wor.lord.stubs.Laqamhsu;
-          import com.gepardec.wor.lord.stubs.ObjectFactory;
-          import com.gepardec.wor.lord.stubs.OmStandardRequestHeader;
           
           public class Test {
               public void test() {

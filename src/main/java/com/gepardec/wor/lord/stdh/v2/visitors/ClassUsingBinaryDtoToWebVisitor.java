@@ -6,17 +6,26 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.J;
 
+import java.util.List;
+
 public class ClassUsingBinaryDtoToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
     private String objectFactoryName;
+    private String objectFactoryType;
+    private JavaTemplate newObjectFactory;
 
-    public ClassUsingBinaryDtoToWebVisitor(String objectFactoryName) {
+    private final static String NEW_OBJECT_FACTORY_TEMPLATE = "private static final ObjectFactory %s = new ObjectFactory();";
+
+    public ClassUsingBinaryDtoToWebVisitor(String objectFactoryName, String objectFactoryPackage) {
         this.objectFactoryName = objectFactoryName;
-    }
+        this.objectFactoryType = objectFactoryPackage + ".ObjectFactory";
 
-    private static JavaTemplate NEW_OBJECT_FACTORY = JavaTemplate
-            .builder("private static final ObjectFactory #{} = new ObjectFactory();")
-            .javaParser(ParserUtil.createParserWithRuntimeClasspath())
-            .build();
+        String newObjectFactoryStatement = String.format(NEW_OBJECT_FACTORY_TEMPLATE, objectFactoryName);
+        this.newObjectFactory = JavaTemplate
+                .builder(newObjectFactoryStatement)
+                .javaParser(ParserUtil.createParserWithRuntimeClasspath())
+                .imports(this.objectFactoryType)
+                .build();
+    }
 
     @Override
     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext context) {
@@ -24,6 +33,7 @@ public class ClassUsingBinaryDtoToWebVisitor extends JavaIsoVisitor<ExecutionCon
         boolean hasObjectFactory = classDecl.getBody().getStatements().stream()
                 .filter(J.VariableDeclarations.class::isInstance)
                 .map(J.VariableDeclarations.class::cast)
+                .filter(variableDeclarations -> variableDeclarations.getType().toString().equals(objectFactoryType))
                 .anyMatch(variableDeclarations -> variableDeclarations
                         .getVariables()
                         .get(0)
@@ -34,11 +44,10 @@ public class ClassUsingBinaryDtoToWebVisitor extends JavaIsoVisitor<ExecutionCon
             return classDecl;
         }
 
-        J.ClassDeclaration classDeclaration = NEW_OBJECT_FACTORY.apply(
+        maybeAddImport(objectFactoryType);
+        return newObjectFactory.apply(
                 updateCursor(classDecl),
-                classDecl.getBody().getCoordinates().firstStatement(),
-                objectFactoryName
+                classDecl.getBody().getCoordinates().firstStatement()
         );
-        return classDeclaration;
     }
 }

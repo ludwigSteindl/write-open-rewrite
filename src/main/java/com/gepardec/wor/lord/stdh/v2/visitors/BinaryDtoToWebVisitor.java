@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 
@@ -66,10 +67,10 @@ public class BinaryDtoToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
     }
 
     private static @NotNull String getWsdlTypeFromBinary(J.MethodInvocation method) {
-        JavaType type = method.getSelect().getType();
-        if (type == null) {
+        Expression select = method.getSelect();
+        if (select == null || select.getType() == null) {
             return "";
         }
-        return type.toString().replaceAll("Dto", "");
+        return select.getType().toString().replaceAll("Dto", "");
     }
 }

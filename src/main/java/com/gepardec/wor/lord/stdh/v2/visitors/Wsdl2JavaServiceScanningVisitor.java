@@ -23,7 +23,7 @@ public class Wsdl2JavaServiceScanningVisitor extends JavaIsoVisitor<ExecutionCon
                                                               ExecutionContext ctx) {
 
         classDeclaration = super.visitClassDeclaration(classDeclaration, ctx);
-        String serviceAlias = classDeclaration.getSimpleName();
+        String className = classDeclaration.getSimpleName();
 
         if (!isInterface(classDeclaration)) {
             return classDeclaration;
@@ -34,7 +34,7 @@ public class Wsdl2JavaServiceScanningVisitor extends JavaIsoVisitor<ExecutionCon
         List<String> requestTypes = getParameterTypes(methods);
         List<String> responseTypes = getReturnTypes(methods);
 
-        Wsdl2JavaService service = new Wsdl2JavaService(serviceAlias, requestTypes, responseTypes);
+        Wsdl2JavaService service = new Wsdl2JavaService(className, requestTypes, responseTypes);
         accumulator.addService(service);
 
         return classDeclaration;

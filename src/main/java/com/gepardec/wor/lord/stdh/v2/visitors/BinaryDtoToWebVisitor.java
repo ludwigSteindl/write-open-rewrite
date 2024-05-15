@@ -46,11 +46,11 @@ public class BinaryDtoToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
 
         String methodName = method.getSimpleName();
         if (!STDH_SETTERS_NAMES.contains(methodName)) {
-            doAfterVisit(new BinaryDtoInitToWebVisitor(instanceName, false));
+            doAfterVisit(new BinaryDtoInitToWebVisitor(instanceName, false, accumulator));
             return method;
         }
 
-        doAfterVisit(new BinaryDtoInitToWebVisitor(instanceName, true));
+        doAfterVisit(new BinaryDtoInitToWebVisitor(instanceName, true, accumulator));
 
         String argument = method.getArguments().get(0).printTrimmed(getCursor());
         return STDH_SETTER.apply(updateCursor(method),

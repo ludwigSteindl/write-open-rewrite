@@ -71,7 +71,6 @@ public class BinaryDtoToWebTest implements RewriteTest {
 
     @DocumentExample
     @Test
-    @Disabled("Not supported yet")
     public void whenBinaryStdhSetWithOtherNamesAndTyoe_thenCreateWebStdh() {
         LOG.info("Start Test");
         rewriteRunWithWsdlClasses(
@@ -79,8 +78,7 @@ public class BinaryDtoToWebTest implements RewriteTest {
           java("""
           package com.gepardec.wor.lord;
           
-          import com.gepardec.wor.lord.stubs.LaqamhsuDto;
-          import com.gepardec.wor.lord.stubs.Laqamhsu;
+          import com.gepardec.wor.lord.stubs.Laqaumv4Dto;
           import com.gepardec.wor.lord.stubs.ObjectFactory;
           import com.gepardec.wor.lord.stubs.OmStandardRequestHeader;
           
@@ -94,8 +92,8 @@ public class BinaryDtoToWebTest implements RewriteTest {
             """
             package com.gepardec.wor.lord;
             
-            import at.sozvers.stp.lgkk.a02.laaaumv4.Laqaumv4;import com.gepardec.wor.lord.stubs.LaqamhsuDto;
-            import com.gepardec.wor.lord.stubs.Laqamhsu;
+            import at.sozvers.stp.lgkk.a02.laaaumv4.Laqaumv4;
+            import com.gepardec.wor.lord.stubs.Laqaumv4Dto;
             import com.gepardec.wor.lord.stubs.ObjectFactory;
             import com.gepardec.wor.lord.stubs.OmStandardRequestHeader;
             

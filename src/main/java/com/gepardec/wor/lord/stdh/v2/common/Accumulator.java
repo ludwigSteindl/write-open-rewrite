@@ -1,7 +1,12 @@
 package com.gepardec.wor.lord.stdh.v2.common;
 
+import org.jetbrains.annotations.NotNull;
+import org.openrewrite.java.tree.Expression;
+import org.openrewrite.java.tree.J;
+
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Accumulator {
@@ -18,7 +23,7 @@ public class Accumulator {
     public List<String> getIOTypesShort() {
         return wsdl2JavaServices.stream()
                 .flatMap(Wsdl2JavaService::getIOTypesStream)
-                .map(type -> type.substring(type.lastIndexOf('.') + 1))
+                .map(Accumulator::shortNameOfFullyQualified)
                 .collect(Collectors.toList());
     }
 
@@ -34,5 +39,26 @@ public class Accumulator {
         return accumulator;
     }
 
+    public @NotNull Optional<String> getWsdlTypeFromBinary(String type) {
+        if(aIOTypeContains(type).isPresent()) {
+            return Optional.empty();
+        }
+
+        String binaryTypeWithoutDtoQualifiers = type.toString()
+                .replaceAll("Dto", "");
+        String shortWsdlType = shortNameOfFullyQualified(binaryTypeWithoutDtoQualifiers);
+
+        return aIOTypeContains(shortWsdlType);
+    }
+
+    private @NotNull Optional<String> aIOTypeContains(String shortWsdlType) {
+        return getIOTypes().stream()
+                .filter(wsdlType -> wsdlType.contains(shortWsdlType))
+                .findFirst();
+    }
+
+    public static String shortNameOfFullyQualified(String fullyQualifiedName) {
+        return fullyQualifiedName.substring(fullyQualifiedName.lastIndexOf('.') + 1);
+    }
 
 }

@@ -1,8 +1,6 @@
 package com.gepardec.wor.lord.stdh.v2.common;
 
 import org.jetbrains.annotations.NotNull;
-import org.openrewrite.java.tree.Expression;
-import org.openrewrite.java.tree.J;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -11,6 +9,7 @@ import java.util.stream.Collectors;
 
 public class Accumulator {
     List<Wsdl2JavaService> wsdl2JavaServices = new LinkedList<>();
+
 
     public void addService(Wsdl2JavaService wsdl2JavaService) {
         this.wsdl2JavaServices.add(wsdl2JavaService);
@@ -51,14 +50,14 @@ public class Accumulator {
         return aIOTypeContains(shortWsdlType);
     }
 
+    public static String shortNameOfFullyQualified(String fullyQualifiedName) {
+        return fullyQualifiedName.substring(fullyQualifiedName.lastIndexOf('.') + 1);
+    }
+
     private @NotNull Optional<String> aIOTypeContains(String shortWsdlType) {
         return getIOTypes().stream()
                 .filter(wsdlType -> wsdlType.contains(shortWsdlType))
                 .findFirst();
-    }
-
-    public static String shortNameOfFullyQualified(String fullyQualifiedName) {
-        return fullyQualifiedName.substring(fullyQualifiedName.lastIndexOf('.') + 1);
     }
 
 }

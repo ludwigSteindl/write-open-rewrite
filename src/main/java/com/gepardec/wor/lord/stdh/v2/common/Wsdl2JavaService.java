@@ -1,5 +1,6 @@
 package com.gepardec.wor.lord.stdh.v2.common;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -13,11 +14,18 @@ public class Wsdl2JavaService {
 
     private List<String> responseTypes;
 
+    private List<Accessor> accessors;
+
     public Wsdl2JavaService(String serviceAlias, List<String> requestTypes, List<String> responseTypes) {
 
-        this.serviceAlias = serviceAlias.toLowerCase();
+        this.serviceAlias = serviceAlias;
         this.requestTypes = excludeNonDtoTypes(requestTypes);
         this.responseTypes = excludeNonDtoTypes(responseTypes);
+        this.accessors = new LinkedList<>();
+    }
+
+    public void addAccessors(List<Accessor> accessors) {
+        this.accessors.addAll(accessors);
     }
 
     public List<String> getIOTypes() {

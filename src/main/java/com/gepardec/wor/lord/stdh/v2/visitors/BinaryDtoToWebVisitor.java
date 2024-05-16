@@ -1,6 +1,8 @@
 package com.gepardec.wor.lord.stdh.v2.visitors;
 
+import com.gepardec.wor.lord.stdh.v2.common.Accessor;
 import com.gepardec.wor.lord.stdh.v2.common.Accumulator;
+import com.gepardec.wor.lord.stdh.v2.common.Wsdl2JavaService;
 import com.gepardec.wor.lord.util.ParserUtil;
 import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;
@@ -11,10 +13,10 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class BinaryDtoToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
 
-    private static final List<String> STDH_SETTERS_NAMES = List.of("setZvst");
     private static final String STDH_GETTER_NAME = "getOmStandardRequestHeader";
 
     private static final String BINARY_DTO_NAME = "LaqamhsuDto";
@@ -45,7 +47,16 @@ public class BinaryDtoToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
         }
 
         String methodName = method.getSimpleName();
-        if (!STDH_SETTERS_NAMES.contains(methodName)) {
+        if (accumulator
+                .getServices()
+                .stream()
+                .map(Wsdl2JavaService::getAccessors)
+                .noneMatch(getters -> getters.stream()
+                        .filter(accessor -> accessor.getParent().isPresent())
+                        .map(Accessor::getName)
+                        .map(name -> "set" + name.substring(3))
+                        .anyMatch(name -> name.equals(methodName))
+                )) {
             doAfterVisit(new BinaryDtoInitToWebVisitor(instanceName, false, accumulator));
             return method;
         }

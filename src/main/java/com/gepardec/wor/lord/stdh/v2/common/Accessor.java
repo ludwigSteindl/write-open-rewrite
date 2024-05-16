@@ -26,7 +26,7 @@ public class Accessor {
     }
 
     public Optional<Accessor> getParent() {
-        return Optional.of(parent);
+        return Optional.ofNullable(parent);
     }
 
     public void setParent(Accessor parent) {

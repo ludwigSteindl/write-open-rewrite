@@ -19,6 +19,7 @@ public class Accumulator {
         return wsdl2JavaServices;
     }
 
+
     public List<String> getIOTypesShort() {
         return wsdl2JavaServices.stream()
                 .flatMap(Wsdl2JavaService::getIOTypesStream)

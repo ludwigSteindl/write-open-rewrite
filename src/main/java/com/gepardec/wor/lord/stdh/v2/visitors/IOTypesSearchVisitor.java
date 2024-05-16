@@ -12,7 +12,7 @@ import org.openrewrite.java.tree.JavaType;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -94,35 +94,59 @@ public class IOTypesSearchVisitor extends JavaIsoVisitor<ExecutionContext> {
 
         methodsReturningOtherTypes.stream()
                 .filter(method -> method.getName().startsWith("get"))
-
                 .map(method -> new Accessor(method.getName(), method.getDeclaringType().getFullyQualifiedName(), filteredParent))
                 .forEach(accessors::add);
 
         List<JavaType.Method> methodsReturningSubDtos = methods.stream()
-                .filter(method -> hasSubDtoReturnType(method))
+                .filter(method -> hasSubDtoReturnType(method)  || (parent == null &&
+                        method.getParameterTypes().stream()
+                                .anyMatch(IOTypesSearchVisitor::isDtoType)))
                 .collect(Collectors.toList());
         for (JavaType.Method method : methodsReturningSubDtos ) {
             JavaType returnType = method.getReturnType();
+            List<JavaType.Class> types = new LinkedList<>();
+
             if (returnType instanceof JavaType.Class clazz) {
-                List<Accessor> subAccessors = getAccessors(
+                types.add(clazz);
+            }
+
+            if (parent == null) {
+                types.addAll(method.getParameterTypes().stream()
+                        .filter(IOTypesSearchVisitor::isDtoType)
+                        .map(JavaType.Class.class::cast)
+                        .collect(Collectors.toList()));
+            }
+
+                types.forEach(clazz -> accessors.addAll(getAccessors(
                         clazz.getMethods(),
                         new Accessor(method.getName(), method.getDeclaringType().getFullyQualifiedName(), filteredParent),
-                        rootName
-                );
-                accessors.addAll(subAccessors);
+                        rootName)
+                ));
             }
-        }
+
+
 
         return accessors;
     }
 
      private static boolean hasSubDtoReturnType(JavaType.Method method) {
+        JavaType returnType = method.getReturnType();
+        return isDtoType(returnType) && declaringTypeIsNotType(method, returnType);
+     }
 
-        if (method.getReturnType() instanceof JavaType.Class clazz) {
-                String className = clazz.getFullyQualifiedName();
-                return (className.contains("at.sozvers.stp.lgkk.a02") && (!className.equals(method.getDeclaringType().toString())))
-                        || (hasDtoTypeParameter(clazz));
+    private static boolean declaringTypeIsNotType(JavaType.Method method, JavaType type) {
+        if (type instanceof JavaType.Class clazz) {
+            String className = clazz.getFullyQualifiedName();
+            return !className.equals(method.getDeclaringType().toString());
         }
+        return false;
+    }
+
+    private static boolean isDtoType(JavaType type) {
+         if ( type instanceof JavaType.Class clazz) {
+             String className = clazz.getFullyQualifiedName();
+             return className.contains("at.sozvers.stp.lgkk.a02") || (hasDtoTypeParameter(clazz));
+         }
          return false;
      }
 

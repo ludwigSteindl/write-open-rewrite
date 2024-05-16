@@ -28,6 +28,10 @@ public class Wsdl2JavaService {
         this.accessors.addAll(accessors);
     }
 
+    public List<Accessor> getAccessors() {
+        return accessors;
+    }
+
     public List<String> getIOTypes() {
         return getIOTypesStream().collect(Collectors.toList());
     }

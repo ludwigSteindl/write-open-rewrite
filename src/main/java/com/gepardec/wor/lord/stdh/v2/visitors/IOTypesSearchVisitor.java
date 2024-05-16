@@ -3,6 +3,7 @@ package com.gepardec.wor.lord.stdh.v2.visitors;
 import com.gepardec.wor.lord.stdh.v2.common.Accessor;
 import com.gepardec.wor.lord.stdh.v2.common.Accumulator;
 import com.gepardec.wor.lord.stdh.v2.common.Wsdl2JavaService;
+import com.gepardec.wor.lord.util.LSTUtil;
 import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.internal.lang.Nullable;
@@ -26,102 +27,61 @@ public class IOTypesSearchVisitor extends JavaIsoVisitor<ExecutionContext> {
     @Override
     public @Nullable J.ClassDeclaration visitClassDeclaration(@Nullable J.ClassDeclaration classDeclaration,
                                                               ExecutionContext ctx) {
-
-
         classDeclaration = super.visitClassDeclaration(classDeclaration, ctx);
-        String className = classDeclaration.getSimpleName();
-
-        if (!isInterface(classDeclaration)) {
+        if (!LSTUtil.isInterface(classDeclaration)) {
             return classDeclaration;
         }
 
-        List<J.MethodDeclaration> methods = getMethods(classDeclaration);
-
-        List<String> requestTypes = getParameterTypes(methods);
-        List<String> responseTypes = getReturnTypes(methods);
-
-
-        Wsdl2JavaService service = new Wsdl2JavaService(className, requestTypes, responseTypes);
+        Wsdl2JavaService service = createServiceWithAccessors(classDeclaration);
         accumulator.addService(service);
 
-        service.addAccessors(getAccessors(classDeclaration));
         return classDeclaration;
     }
 
-    static boolean isInterface(J.ClassDeclaration classDeclaration) {
-        return classDeclaration.getKind().equals(J.ClassDeclaration.Kind.Type.Interface);
+    private @NotNull Wsdl2JavaService createServiceWithAccessors(J.ClassDeclaration classDeclaration) {
+        String className = classDeclaration.getSimpleName();
+        Wsdl2JavaService service = createService(LSTUtil.getMethodDeclarations(classDeclaration), className);
+        service.addAccessors(createAccessors(classDeclaration));
+        return service;
     }
 
-    static @NotNull List<J.MethodDeclaration> getMethods(J.ClassDeclaration classDeclaration) {
-        return classDeclaration.getBody().getStatements().stream()
-                .filter(J.MethodDeclaration.class::isInstance)
-                .map(J.MethodDeclaration.class::cast)
-                .collect(Collectors.toList());
+    private static @NotNull Wsdl2JavaService createService(List<J.MethodDeclaration> methods, String className) {
+        List<String> requestTypes = LSTUtil.getParameterTypes(methods);
+        List<String> responseTypes = LSTUtil.getReturnTypes(methods);
+        Wsdl2JavaService service = new Wsdl2JavaService(className, requestTypes, responseTypes);
+        return service;
     }
 
-    static @NotNull List<String> getReturnTypes(List<J.MethodDeclaration> methods) {
-        return methods.stream()
-                .map(m -> m.getReturnTypeExpression().toString())
-                .collect(Collectors.toList());
-    }
-
-    static @NotNull List<String> getParameterTypes(List<J.MethodDeclaration> methods) {
-        List<String> requestTypes = methods.stream().flatMap(m -> m.getParameters().stream())
-                .filter(J.VariableDeclarations.class::isInstance)
-                .map(J.VariableDeclarations.class::cast)
-                .map(J.VariableDeclarations::getType)
-                .map(type -> type.toString())
-                .distinct()
-                .collect(Collectors.toList());
-        return requestTypes;
-    }
-
-    List<Accessor> getAccessors(J.ClassDeclaration classDeclaration) {
+    List<Accessor> createAccessors(J.ClassDeclaration classDeclaration) {
         List<JavaType.Method> methods = classDeclaration.getType().getMethods();
-        return getAccessors(methods, null, classDeclaration.getSimpleName()).stream()
+        return createAccessors(methods, null, classDeclaration.getSimpleName()).stream()
                 .filter(accessor -> !accessor.getClazz().equals(classDeclaration.getType().toString()))
                 .collect(Collectors.toList());
     }
 
-    private static List<Accessor> getAccessors(List<JavaType.Method> methods, Accessor parent, String rootName) {
-        List<Accessor> accessors = new LinkedList<>();
+    private static List<Accessor> createAccessors(List<JavaType.Method> methods, Accessor parent, String rootName) {
+        Optional<Accessor> filteredParent = removeRootParent(parent, rootName);
 
-        Accessor filteredParent = parent != null && parent.getClazz().contains(rootName) ? null : parent;
+        List<Accessor> accessors = extractMethodsNotReturningSubDtos(methods, filteredParent);
 
-        List<JavaType.Method> methodsReturningOtherTypes = methods.stream()
-                .filter(method -> !hasSubDtoReturnType(method))
-                .collect(Collectors.toList());
-
-        methodsReturningOtherTypes.stream()
-                .filter(method -> method.getName().startsWith("get"))
-                .map(method -> new Accessor(method.getName(), method.getDeclaringType().getFullyQualifiedName(), filteredParent))
-                .forEach(accessors::add);
-
-        List<JavaType.Method> methodsReturningSubDtos = methods.stream()
-                .filter(method -> hasSubDtoReturnType(method)  || (parent == null &&
-                        method.getParameterTypes().stream()
-                                .anyMatch(IOTypesSearchVisitor::isDtoType)))
-                .collect(Collectors.toList());
+        List<JavaType.Method> methodsReturningSubDtos = extractMethodsReturningSubDtos(methods, parent);
         for (JavaType.Method method : methodsReturningSubDtos ) {
             JavaType returnType = method.getReturnType();
-            List<JavaType.Class> types = new LinkedList<>();
 
+            List<JavaType.Class> types = new LinkedList<>();
             if (returnType instanceof JavaType.Class clazz) {
                 types.add(clazz);
             }
-
             if (parent == null) {
-                types.addAll(method.getParameterTypes().stream()
-                        .filter(IOTypesSearchVisitor::isDtoType)
-                        .map(JavaType.Class.class::cast)
-                        .collect(Collectors.toList()));
+                types.addAll(getAllDtoParameters(method));
             }
 
-                types.forEach(clazz -> accessors.addAll(getAccessors(
+            types.stream()
+                    .map(clazz -> createAccessors(
                         clazz.getMethods(),
-                        new Accessor(method.getName(), method.getDeclaringType().getFullyQualifiedName(), filteredParent),
-                        rootName)
-                ));
+                        createParentAccessor(method, filteredParent.orElse(null)),
+                        rootName))
+                    .forEach(accessors::addAll);
             }
 
 
@@ -129,18 +89,61 @@ public class IOTypesSearchVisitor extends JavaIsoVisitor<ExecutionContext> {
         return accessors;
     }
 
-     private static boolean hasSubDtoReturnType(JavaType.Method method) {
-        JavaType returnType = method.getReturnType();
-        return isDtoType(returnType) && declaringTypeIsNotType(method, returnType);
-     }
-
-    private static boolean declaringTypeIsNotType(JavaType.Method method, JavaType type) {
-        if (type instanceof JavaType.Class clazz) {
-            String className = clazz.getFullyQualifiedName();
-            return !className.equals(method.getDeclaringType().toString());
-        }
-        return false;
+    private static @NotNull List<JavaType.Method> extractMethodsReturningSubDtos(List<JavaType.Method> methods, Accessor parent) {
+        return methods.stream()
+                .filter(method -> hasSubDtoReturnType(method) || (parent == null &&
+                        method.getParameterTypes().stream()
+                                .anyMatch(IOTypesSearchVisitor::isDtoType)))
+                .collect(Collectors.toList());
     }
+
+    private static @NotNull List<JavaType.Class> getAllDtoParameters(JavaType.Method method) {
+        return method.getParameterTypes().stream()
+                .filter(IOTypesSearchVisitor::isDtoType)
+                .map(JavaType.Class.class::cast)
+                .collect(Collectors.toList());
+    }
+
+    private static List<Accessor> extractMethodsNotReturningSubDtos(List<JavaType.Method> methods, Optional<Accessor> filteredParent) {
+        List<JavaType.Method> methodsReturningOtherTypes = methods.stream()
+                .filter(method -> !hasSubDtoReturnType(method))
+                .collect(Collectors.toList());
+
+        return methodsReturningOtherTypes.stream()
+                .filter(method -> {
+                    String get = "get";
+                    return LSTUtil.methodNameStartsWith(method, get);
+                })
+                .map(method ->
+                        filteredParent
+                                .map(accessor -> createParentAccessor(method, accessor))
+                                .orElseGet(() -> createAccessor(method))
+                ).collect(Collectors.toList());
+    }
+
+    private static @NotNull Accessor createParentAccessor(JavaType.Method method, Accessor filteredParent) {
+        return new Accessor(method.getName(), method.getDeclaringType().getFullyQualifiedName(), filteredParent);
+    }
+
+    private static @NotNull Accessor createAccessor(JavaType.Method method) {
+        return new Accessor(method.getName(), method.getDeclaringType().getFullyQualifiedName());
+    }
+
+    private static Optional<Accessor> removeRootParent(Accessor parent, String rootName) {
+        return Optional.ofNullable(parent != null &&
+                        accessorHasName(parent, rootName) ?
+                        null :
+                        parent);
+    }
+
+    private static boolean accessorHasName(Accessor parent, String rootName) {
+        return parent.getClazz().contains(rootName);
+    }
+
+    private static boolean hasSubDtoReturnType(JavaType.Method method) {
+        JavaType returnType = method.getReturnType();
+        return isDtoType(returnType) && LSTUtil.declaringTypeIsNotType(method, returnType);
+     }
 
     private static boolean isDtoType(JavaType type) {
          if ( type instanceof JavaType.Class clazz) {

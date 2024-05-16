@@ -20,8 +20,6 @@ public class BinaryDtoToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
 
     private static final String STDH_GETTER_NAME = "getOmStandardRequestHeader";
 
-    private static final String BINARY_DTO_NAME = "LaqamhsuDto";
-
     private static final JavaTemplate STDH_SETTER = JavaTemplate
             .builder("#{}.#{}(#{});")
             .javaParser(ParserUtil.createParserWithRuntimeClasspath())
@@ -53,13 +51,17 @@ public class BinaryDtoToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
 
         String type = method.getSelect().getType().toString();
         String methodName = method.getSimpleName();
-        String newSetter = generateWebDtoSetter(methodName, type);
+        Optional<Accessor> accessor = findAccessor(methodName, type);
+        if (accessor.isEmpty()) {
+            return method;
+        }
+        String newSetter = generateWebDtoSetter(accessor.get(), methodName);
         if (isNotNested(methodName)) {
-            doAfterVisit(new BinaryDtoInitToWebVisitor(instanceName, false, accumulator));
+            doAfterVisit(new BinaryDtoInitToWebVisitor(instanceName, accumulator));
             return method;
         }
 
-        doAfterVisit(new BinaryDtoInitToWebVisitor(instanceName, true, accumulator));
+        doAfterVisit(new BinaryDtoInitToWebVisitor(instanceName, accessor.get(), accumulator));
 
         String argument = method.getArguments().get(0).printTrimmed(getCursor());
         return STDH_SETTER.apply(updateCursor(method),
@@ -70,13 +72,8 @@ public class BinaryDtoToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
         );
     }
 
-    private String generateWebDtoSetter(String methodName, String methodType) {
-        Optional<Accessor> accessor = findAccessor(methodName, methodType);
-        if (accessor.isEmpty()) {
-            return methodName;
-        }
-
-        Optional<Accessor> nextAccessor = accessor.get().getParent();
+    private String generateWebDtoSetter(Accessor accessor, String methodName) {
+        Optional<Accessor> nextAccessor = accessor.getParent();
         StringBuilder stringBuilder = new StringBuilder();
         while (nextAccessor.isPresent()) {
             Accessor accessorIteration = nextAccessor.get();

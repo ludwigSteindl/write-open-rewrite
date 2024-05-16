@@ -55,7 +55,7 @@ public class BinaryDtoToWebTest implements RewriteTest {
                 private static final ObjectFactory objectFactory = new ObjectFactory();
                 public void test() {
                     Laqamhsu reqDto = new Laqamhsu();
-                    reqDto.setOmStandardRequestHeader(objectFactory.createOmStandardRequestHeader());
+                    reqDto.setStdh(objectFactory.createOmStandardRequestHeader());
                     reqDto.getStdh().setZvst("11");
                 }
             }
@@ -91,7 +91,7 @@ public class BinaryDtoToWebTest implements RewriteTest {
                 private static final ObjectFactory objectFactory = new ObjectFactory();
                 public void test() {
                     Laqaumv4 request = new Laqaumv4();
-                    request.setOmStandardRequestHeader(objectFactory.createOmStandardRequestHeader());
+                    request.setStdh(objectFactory.createOmStandardRequestHeader());
                     request.getStdh().setZvst("11");
                 }
             }
@@ -126,8 +126,49 @@ public class BinaryDtoToWebTest implements RewriteTest {
                 private static final ObjectFactory objectFactory = new ObjectFactory();
                 public void test() {
                     Laqaumv4 request = new Laqaumv4();
-                    request.setOmStandardRequestHeader(objectFactory.createOmStandardRequestHeader());
+                    request.setDatenv3(objectFactory.createLaqaumv4Datenv3());
                     request.getDatenv3().setPostleitzahl("1220");
+                }
+            }
+            """)
+        );
+    }
+    @DocumentExample
+    @Test
+    public void whenNestedSetters_thenTransformNestedSetters() {
+        LOG.info("Start Test");
+        rewriteRunWithWsdlClasses(
+          //language=java
+          java("""
+          package com.gepardec.wor.lord;
+          
+          import com.gepardec.wor.lord.stubs.Laqaumv4Dto;
+          
+          public class Test {
+              public void test() {
+                  Laqaumv4Dto request = new Laqaumv4Dto();
+                  request.setPostleitzahl("1220");
+                  request.setCReserved("test");
+                  request.setZvst("11");
+              }
+          }
+          """,
+            """
+            package com.gepardec.wor.lord;
+            
+            import at.sozvers.stp.lgkk.a02.laaaumv4.Laqaumv4;
+            import at.sozvers.stp.lgkk.a02.laaaumv4.ObjectFactory;
+            
+            public class Test {
+                private static final ObjectFactory objectFactory = new ObjectFactory();
+                public void test() {
+                    Laqaumv4 request = new Laqaumv4();
+                    request.setStdh(objectFactory.createOmStandardRequestHeader());
+                    request.setMxcb(objectFactory.createMxcb());
+                    request.setDatenv3(objectFactory.createLaqaumv4Datenv3());
+                    request.getDatenv3().setPostleitzahl("1220");
+                    request.getMxcb().setCReserved("test");
+                    request.getStdh().setZvst("11");
                 }
             }
             """)
@@ -163,7 +204,7 @@ public class BinaryDtoToWebTest implements RewriteTest {
                 private static final ObjectFactory objectFactory = new ObjectFactory();
                 public void test() {
                     Laqamhsu reqDto = new Laqamhsu();
-                    reqDto.setOmStandardRequestHeader(objectFactory.createOmStandardRequestHeader());
+                    reqDto.setStdh(objectFactory.createOmStandardRequestHeader());
                     reqDto.getStdh().setZvst("11");
                 }
             }
@@ -184,22 +225,10 @@ public class BinaryDtoToWebTest implements RewriteTest {
           public class Test {
               public void test() {
                   LaqamhsuDto reqDto = new LaqamhsuDto();
-                  reqDto.setDatenv3("blubb");
+                  reqDto.toString();
               }
           }
-          """,
-            """
-            package com.gepardec.wor.lord;
-            
-            import at.sozvers.stp.lgkk.a02.laaamhsu.Laqamhsu;
-            
-            public class Test {
-                public void test() {
-                    Laqamhsu reqDto = new Laqamhsu();
-                    reqDto.setDatenv3("blubb");
-                }
-            }
-            """)
+          """)
         );
     }
     @DocumentExample
@@ -216,7 +245,7 @@ public class BinaryDtoToWebTest implements RewriteTest {
           public class Test {
               public void test() {
                   LaqaumwtDto reqDto = new LaqaumwtDto();
-                  reqDto.setDatenv3("blubb");
+                  reqDto.toString();
               }
           }
           """)

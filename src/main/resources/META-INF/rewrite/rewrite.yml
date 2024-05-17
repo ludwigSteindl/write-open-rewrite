@@ -38,6 +38,7 @@ recipeList:
 # - Change groupId in dependency management
 # - Update version property
 # - Change groupId in dependency usage
+# Notice: If this recipe runs in dryRun mode it will create some unpleasant comments in pom.xml
 type: specs.openrewrite.org/v1beta/recipe
 name: com.gepardec.UpgradeQueryDslDependency
 displayName: Upgrade Maven dependency version example

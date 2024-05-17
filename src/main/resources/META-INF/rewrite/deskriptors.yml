@@ -1,0 +1,49 @@
+#
+# Copyright 2023 the original author or authors.
+# <p>
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://www.apache.org/licenses/LICENSE-2.0
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.gepardec.java.migrate.jakarta.Descriptors
+displayName: Migrate JEE Descriptors to Jakarta EE 10
+description: These recipes help with the Migration to Jakarta EE 10.
+tags:
+  - jakarta
+recipeList:
+  - org.openrewrite.java.migrate.jakarta.JavaxBeansXmlToJakartaBeansXml
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.migrate.jakarta.JavaxBeansXmlToJakartaBeansXml
+displayName: Migrate xmlns entries in `beans.xml` files
+description: Java EE has been rebranded to Jakarta EE, necessitating an XML namespace relocation.
+tags:
+  - jakarta
+  - persistence
+  - orm
+preconditions:
+  - org.openrewrite.FindSourceFiles:
+      filePattern: '**/*orm.xml'
+recipeList:
+  - org.openrewrite.xml.ChangeTagAttribute:
+      attributeName: version
+      elementName: entity-mappings
+      newValue: 3.0
+  - org.openrewrite.xml.ChangeTagAttribute:
+      attributeName: xmlns
+      elementName: entity-mappings
+      newValue: https://jakarta.ee/xml/ns/persistence/orm
+  - org.openrewrite.xml.ChangeTagAttribute:
+      attributeName: xsi:schemaLocation
+      elementName: entity-mappings
+      newValue: https://jakarta.ee/xml/ns/persistence/orm https://jakarta.ee/xml/ns/persistence/orm/orm_3_0.xsd

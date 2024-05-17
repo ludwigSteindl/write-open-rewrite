@@ -30,3 +30,27 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.jetbrains.annotations.Nullable
       newFullyQualifiedTypeName: org.openrewrite.internal.lang.Nullable
+
+---
+# Recipe will change dependency management and dependency usage of querydsl-core dependency in given project
+# This order is necessary to preserve the version as property and the separation of dependency management and dependency usage
+# Order:
+# - Change groupId in dependency management
+# - Update version property
+# - Change groupId in dependency usage
+type: specs.openrewrite.org/v1beta/recipe
+name: com.gepardec.UpgradeQueryDslDependency
+displayName: Upgrade Maven dependency version example
+recipeList:
+  - org.openrewrite.maven.ChangeManagedDependencyGroupIdAndArtifactId:
+      oldGroupId: com.mysema.querydsl
+      oldArtifactId: querydsl-core
+      newGroupId: com.querydsl
+      newArtifactId: querydsl-core
+  - org.openrewrite.maven.ChangePropertyValue:
+      key: querydsl-core.version
+      newValue: 5.1.0
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: com.mysema.querydsl
+      oldArtifactId: querydsl-core
+      newGroupId: com.querydsl

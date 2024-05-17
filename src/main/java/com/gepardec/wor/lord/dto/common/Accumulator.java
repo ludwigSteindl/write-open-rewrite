@@ -1,5 +1,6 @@
-package com.gepardec.wor.lord.stdh.v2.common;
+package com.gepardec.wor.lord.dto.common;
 
+import com.gepardec.wor.lord.util.LSTUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedList;
@@ -23,7 +24,7 @@ public class Accumulator {
     public List<String> getIOTypesShort() {
         return wsdl2JavaServices.stream()
                 .flatMap(Wsdl2JavaService::getIOTypesStream)
-                .map(Accumulator::shortNameOfFullyQualified)
+                .map(LSTUtil::shortNameOfFullyQualified)
                 .collect(Collectors.toList());
     }
 
@@ -39,20 +40,16 @@ public class Accumulator {
         return accumulator;
     }
 
-    public @NotNull Optional<String> getWsdlTypeFromBinary(String type) {
+    public @NotNull Optional<String> lookupWsdlTypeFromBinary(String type) {
         if(aIOTypeContains(type).isPresent()) {
             return Optional.empty();
         }
 
         String binaryTypeWithoutDtoQualifiers = type.toString()
                 .replaceAll("Dto", "");
-        String shortWsdlType = shortNameOfFullyQualified(binaryTypeWithoutDtoQualifiers);
+        String shortWsdlType = LSTUtil.shortNameOfFullyQualified(binaryTypeWithoutDtoQualifiers);
 
         return aIOTypeContains(shortWsdlType);
-    }
-
-    public static String shortNameOfFullyQualified(String fullyQualifiedName) {
-        return fullyQualifiedName.substring(fullyQualifiedName.lastIndexOf('.') + 1);
     }
 
     private @NotNull Optional<String> aIOTypeContains(String shortWsdlType) {

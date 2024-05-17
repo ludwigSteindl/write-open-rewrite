@@ -1,8 +1,8 @@
-package com.gepardec.wor.lord.stdh.v2.visitors;
+package com.gepardec.wor.lord.dto.visitors.search;
 
-import com.gepardec.wor.lord.stdh.v2.common.Accessor;
-import com.gepardec.wor.lord.stdh.v2.common.Accumulator;
-import com.gepardec.wor.lord.stdh.v2.common.Wsdl2JavaService;
+import com.gepardec.wor.lord.dto.common.Accessor;
+import com.gepardec.wor.lord.dto.common.Accumulator;
+import com.gepardec.wor.lord.dto.common.Wsdl2JavaService;
 import com.gepardec.wor.lord.util.LSTUtil;
 import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;
@@ -17,10 +17,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 
-public class IOTypesSearchVisitor extends JavaIsoVisitor<ExecutionContext> {
+public class WSDLTypesSearch extends JavaIsoVisitor<ExecutionContext> {
     private Accumulator accumulator;
 
-    public IOTypesSearchVisitor(Accumulator accumulator) {
+    public WSDLTypesSearch(Accumulator accumulator) {
         this.accumulator = accumulator;
     }
 
@@ -93,13 +93,13 @@ public class IOTypesSearchVisitor extends JavaIsoVisitor<ExecutionContext> {
         return methods.stream()
                 .filter(method -> hasSubDtoReturnType(method) || (parent == null &&
                         method.getParameterTypes().stream()
-                                .anyMatch(IOTypesSearchVisitor::isDtoType)))
+                                .anyMatch(WSDLTypesSearch::isDtoType)))
                 .collect(Collectors.toList());
     }
 
     private static @NotNull List<JavaType.Class> getAllDtoParameters(JavaType.Method method) {
         return method.getParameterTypes().stream()
-                .filter(IOTypesSearchVisitor::isDtoType)
+                .filter(WSDLTypesSearch::isDtoType)
                 .map(JavaType.Class.class::cast)
                 .collect(Collectors.toList());
     }
@@ -164,7 +164,7 @@ public class IOTypesSearchVisitor extends JavaIsoVisitor<ExecutionContext> {
     private static boolean anyTypeParameterIsDto(JavaType.Class clazz) {
         return clazz.getTypeParameters()
                 .stream()
-                .anyMatch(IOTypesSearchVisitor::typeParameterIsDto);
+                .anyMatch(WSDLTypesSearch::typeParameterIsDto);
     }
 
     private static boolean typeParameterIsDto(JavaType typeParameter) {

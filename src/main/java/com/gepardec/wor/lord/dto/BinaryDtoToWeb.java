@@ -1,14 +1,14 @@
-package com.gepardec.wor.lord.stdh.v2.recipes;
+package com.gepardec.wor.lord.dto;
 
-import com.gepardec.wor.lord.stdh.v2.common.Accumulator;
-import com.gepardec.wor.lord.stdh.v2.visitors.BinaryDtoToWebVisitor;
-import com.gepardec.wor.lord.stdh.v2.visitors.IOTypesSearchVisitor;
+import com.gepardec.wor.lord.dto.common.Accumulator;
+import com.gepardec.wor.lord.dto.visitors.transform.BinarySetterToWeb;
+import com.gepardec.wor.lord.dto.visitors.search.WSDLTypesSearch;
 import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.ScanningRecipe;
 import org.openrewrite.TreeVisitor;
 
-public class BinaryDtoToWsdl2JavaServiceDto extends ScanningRecipe<Accumulator> {
+public class BinaryDtoToWeb extends ScanningRecipe<Accumulator> {
 
     @Override
     public String getDisplayName() {
@@ -27,12 +27,12 @@ public class BinaryDtoToWsdl2JavaServiceDto extends ScanningRecipe<Accumulator> 
 
     @Override
     public TreeVisitor<?, ExecutionContext> getScanner(Accumulator accumulator) {
-        return new IOTypesSearchVisitor(accumulator);
+        return new WSDLTypesSearch(accumulator);
     }
 
     @Override
     public @NotNull TreeVisitor<?, ExecutionContext> getVisitor(Accumulator accumulator) {
-        return new BinaryDtoToWebVisitor(accumulator);
+        return new BinarySetterToWeb(accumulator);
     }
 
 

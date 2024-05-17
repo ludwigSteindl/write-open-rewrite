@@ -1,0 +1,154 @@
+package com.gepardec.wor.lord.dto.visitors.transform;
+
+import com.gepardec.wor.lord.dto.common.Accessor;
+import com.gepardec.wor.lord.dto.common.Accumulator;
+import com.gepardec.wor.lord.util.LSTUtil;
+import org.jetbrains.annotations.NotNull;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.java.AddImport;
+import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.RemoveImport;
+import org.openrewrite.java.tree.CoordinateBuilder;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaCoordinates;
+import org.openrewrite.java.tree.Statement;
+
+import java.util.List;
+import java.util.Optional;
+
+public class BinaryInitToWeb extends JavaIsoVisitor<ExecutionContext> {
+    private String variableName;
+    private Accessor accessor;
+    private Accumulator accumulator;
+
+    // Template for creating a new instance of a type
+    // pos1 & pos3: type name
+    // pos2: variable name
+    private static final String NEW_WEB_DTO = "%s %s = new %s();";
+
+    // Template for creating a setter statement
+    // pos1: variable name
+    // pos2: setter name
+    // pos3: value to set
+    public static final String SETTER_TEMPLATE = "%s.%s(%s);";
+
+    private static final String OBJECT_FACTORY_NAME = "objectFactory";
+
+
+    public BinaryInitToWeb(String variableName, Accessor accessor, Accumulator accumulator) {
+        this.variableName = variableName;
+        this.accessor = accessor;
+        this.accumulator = accumulator;
+    }
+
+    @Override
+    public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+        method = super.visitMethodDeclaration(method, ctx);
+
+        boolean createsWebDto = false;
+        Optional<J.VariableDeclarations> dtoDeclarations = getDtoDeclaration(LSTUtil.getStatements(method));
+
+        if (dtoDeclarations.isEmpty()) {
+            return method;
+        }
+
+        String dtoShortType = getShortTypeOfDeclarations(dtoDeclarations.get());
+        String wsdlType = null;
+        if (dtoShortType.contains("Dto")) {
+            createsWebDto = true;
+            String binaryType = LSTUtil.getType(dtoDeclarations.get());
+            Optional<String> wsdlTypeFromBinary = accumulator.lookupWsdlTypeFromBinary(binaryType);
+
+            if (wsdlTypeFromBinary.isEmpty()) {
+                return method;
+            }
+
+            replaceBinaryImportWithWeb(binaryType, wsdlTypeFromBinary.get());
+            addObjectFactoryCreationToClass(wsdlTypeFromBinary);
+
+            wsdlType = LSTUtil.shortNameOfFullyQualified(wsdlTypeFromBinary.get());
+
+        }
+        if (accumulator.getIOTypesShort().contains(dtoShortType)) {
+            wsdlType = dtoShortType;
+        }
+
+        if (wsdlType == null) {
+            return method;
+        }
+
+        return updateMethodToInitializeWebDto(method, dtoDeclarations.get(), createsWebDto, wsdlType);
+    }
+
+    public String createSetterStatement(Accessor accessor) {
+        if (accessor.getParent().isEmpty()) {
+            return "";
+        }
+        String getter = accessor.getParent().get().getName();
+        String setter = "set" + removeGetterPrefix(getter);
+
+        String accessorClassName = LSTUtil.shortNameOfFullyQualified(accessor.getClazz());
+        String objectFactoryCreate = "%s.create%s()".formatted(OBJECT_FACTORY_NAME, accessorClassName);
+
+        return SETTER_TEMPLATE.formatted(variableName, setter, objectFactoryCreate);
+    }
+
+    private void addObjectFactoryCreationToClass(Optional<String> wsdlTypeFromBinary) {
+        doAfterVisit(new ObjectFactoryCreator(
+                OBJECT_FACTORY_NAME,
+                LSTUtil.packageOf(wsdlTypeFromBinary.get())));
+    }
+
+    private J.MethodDeclaration updateMethodToInitializeWebDto(J.MethodDeclaration method, J.VariableDeclarations dtoDeclarations, boolean createsWebDto, String newType) {
+        JavaCoordinates coordinates = getTemplateCoordinates(dtoDeclarations, createsWebDto);
+        return getCreateDtoJavaTemplate(newType, createsWebDto)
+                .map(javaTemplate -> javaTemplate.apply(updateCursor(method), coordinates))
+                .map(J.MethodDeclaration.class::cast)
+                .orElse(method);
+    }
+
+    private static @NotNull JavaCoordinates getTemplateCoordinates(J.VariableDeclarations dtoDeclarations, boolean createsWebDto) {
+        CoordinateBuilder.VariableDeclarations coordinateBuilder = dtoDeclarations.getCoordinates();
+        return createsWebDto ? coordinateBuilder.replace() : coordinateBuilder.after();
+    }
+
+
+    private String getShortTypeOfDeclarations(J.VariableDeclarations dtoDeclarations) {
+        String dtoType = dtoDeclarations.getTypeExpression().toString();
+        return LSTUtil.shortNameOfFullyQualified(dtoType);
+    }
+
+    private @NotNull Optional<J.VariableDeclarations> getDtoDeclaration(List<Statement> statements) {
+        return LSTUtil.getDeclarationOfVariable(statements, variableName);
+    }
+
+    private void replaceBinaryImportWithWeb(String binaryType, String wsdlType) {
+        doAfterVisit(new AddImport<>(wsdlType, null, false));
+        doAfterVisit(new RemoveImport<>(binaryType, true));
+    }
+
+    private static @NotNull String removeGetterPrefix(String getter) {
+        return getter.substring(getter.startsWith("is") ? 2 : 3);
+    }
+
+    private Optional<JavaTemplate> getCreateDtoJavaTemplate(String wsdlType, boolean createsWebDto) {
+        StringBuilder template = new StringBuilder();
+
+        if (createsWebDto) {
+            template.append(NEW_WEB_DTO.formatted(wsdlType, variableName, wsdlType));
+        }
+        if (accessor != null)
+            template
+                    .append(createsWebDto ? "\n" : "")
+                    .append(createSetterStatement((accessor)));
+
+        if (template.isEmpty()) {
+            return Optional.empty();
+        }
+
+        JavaTemplate resultingTemplate = LSTUtil.javaTemplateOf(template.toString(), wsdlType);
+        return Optional.of(resultingTemplate);
+    }
+
+}

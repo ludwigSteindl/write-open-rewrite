@@ -1,4 +1,4 @@
-package com.gepardec.wor.lord.stdh.v2.common;
+package com.gepardec.wor.lord.dto.common;
 
 import java.util.LinkedList;
 import java.util.List;

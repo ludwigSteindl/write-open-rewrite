@@ -1,8 +1,7 @@
-package com.gepardec.wor.lord.stdh.v2;
+package com.gepardec.wor.lord.dto;
 
 import com.gepardec.wor.helpers.SourceFileContents;
 import com.gepardec.wor.lord.call.ternaries.BinaryProxyToWebTernaryAndClassTest;
-import com.gepardec.wor.lord.stdh.v2.recipes.BinaryDtoToWsdl2JavaServiceDto;
 import com.gepardec.wor.lord.util.ParserUtil;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
@@ -22,7 +21,7 @@ public class BinaryDtoToWebTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .recipe(new BinaryDtoToWsdl2JavaServiceDto())
+          .recipe(new BinaryDtoToWeb())
           .parser(ParserUtil.createParserWithRuntimeClasspath())
           .typeValidationOptions(TypeValidation.none());
     }

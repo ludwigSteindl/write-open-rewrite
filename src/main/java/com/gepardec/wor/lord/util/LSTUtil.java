@@ -1,11 +1,14 @@
 package com.gepardec.wor.lord.util;
 
 import org.jetbrains.annotations.NotNull;
+import org.openrewrite.Cursor;
+import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Statement;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,8 +31,22 @@ public class LSTUtil {
                 .map(type::cast)
                 .collect(Collectors.toList());
     }
+
+    public static String getType(J.VariableDeclarations dtoDeclarations) {
+        return dtoDeclarations.getType().toString();
+    }
+
+    public static String getType(J.MethodInvocation method) {
+        return method.getSelect().getType().toString();
+    }
+
+
     public static @NotNull List<Statement> getStatements(J.ClassDeclaration classDeclaration) {
         return classDeclaration.getBody().getStatements();
+    }
+
+    public static @NotNull List<Statement> getStatements(J.MethodDeclaration methodDeclaration) {
+        return methodDeclaration.getBody().getStatements();
     }
 
     public static @NotNull List<String> getReturnTypes(List<J.MethodDeclaration> methods) {
@@ -64,5 +81,40 @@ public class LSTUtil {
             return !className.equals(method.getDeclaringType().toString());
         }
         return false;
+    }
+
+    public static @NotNull Optional<J.VariableDeclarations> getDeclarationOfVariable(List<Statement> statements, String variable) {
+        return extractStatementsOfType(statements, J.VariableDeclarations.class)
+                .stream()
+                .filter(variableDeclarations -> variableDeclarations.getVariables().get(0).getSimpleName().equals(variable))
+                .findFirst();
+    }
+
+    public static JavaTemplate javaTemplateOf(String template, String... importType) {
+        return JavaTemplate
+                .builder(template)
+                .javaParser(ParserUtil.createParserWithRuntimeClasspath())
+                .imports(importType)
+                .contextSensitive()
+                .build();
+    }
+
+    public static String packageOf(String type) {
+        return type.substring(0, type.lastIndexOf('.'));
+    }
+
+    public static @NotNull String getFirstArgument(J.MethodInvocation method, Cursor cursor) {
+        return method.getArguments().get(0).printTrimmed(cursor);
+    }
+
+    public static @NotNull String getVariableName(J.VariableDeclarations variableDeclarations) {
+        return variableDeclarations
+                .getVariables()
+                .get(0)
+                .getSimpleName();
+    }
+
+    public static String shortNameOfFullyQualified(String fullyQualifiedName) {
+        return fullyQualifiedName.substring(fullyQualifiedName.lastIndexOf('.') + 1);
     }
 }

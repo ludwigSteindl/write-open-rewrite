@@ -32,7 +32,7 @@ class JavaxOrmXmlToJakartaOrmXmlTest implements RewriteTest {
           .recipe(Environment.builder()
             .scanRuntimeClasspath("com.gepardec.wor")
             .build()
-            .activateRecipes("org.openrewrite.java.migrate.jakarta.JavaxBeansXmlToJakartaBeansXml"));
+            .activateRecipes("org.openrewrite.java.migrate.jakarta.JavaxOrmXmlToJakartaOrmXml"));
     }
 
     @DocumentExample

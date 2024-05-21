@@ -12,6 +12,7 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Statement;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class BinaryProxyToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
     public static final String METHOD_NAME = "callSvcProxy";
@@ -20,30 +21,28 @@ public class BinaryProxyToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
             .contextSensitive()
             .build();
 
-    private final static String IF_TEMPLATE = """
-                            if(useWeb) {
-                                %s
-                            } else {
-                                #{any()};
-                            }
-                            """;
+    private final static String IF_TEMPLATE = "if(useWeb) {\n" +
+            "    %s\n" +
+            "} else {\n" +
+            "    #{any()};\n" +
+            "}\n";
     private final static JavaTemplate IF_INITIALIZATION = JavaTemplate
-            .builder(IF_TEMPLATE.formatted("AuMhHostInfoResponseDto #{} = callSvcWeb(#{});"))
+            .builder(String.format(IF_TEMPLATE, "AuMhHostInfoResponseDto #{} = callSvcWeb(#{});"))
             .javaParser(ParserUtil.createParserWithRuntimeClasspath())
             .contextSensitive()
             .build();
     private final static JavaTemplate IF_RETURN = JavaTemplate
-            .builder(IF_TEMPLATE.formatted("return callSvcWeb(#{});"))
+            .builder(String.format(IF_TEMPLATE, "return callSvcWeb(#{});"))
             .javaParser(ParserUtil.createParserWithRuntimeClasspath())
             .contextSensitive()
             .build();
     private final static JavaTemplate IF_ASSIGNMENT = JavaTemplate
-            .builder(IF_TEMPLATE.formatted("#{} = callSvcWeb(#{});"))
+            .builder(String.format(IF_TEMPLATE, "#{} = callSvcWeb(#{});"))
             .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
             .contextSensitive()
             .build();
     private final JavaTemplate IF_INVOCATION = JavaTemplate
-            .builder(IF_TEMPLATE.formatted("callSvcWeb(#{});"))
+            .builder(String.format(IF_TEMPLATE, "callSvcWeb(#{});"))
             .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
             .contextSensitive()
             .build();
@@ -65,16 +64,20 @@ public class BinaryProxyToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
         }
 
         for (Statement statement : statementsWithInvocation) {
-            if (statement instanceof J.VariableDeclarations declaration) {
+            if (statement instanceof J.VariableDeclarations) {
+                J.VariableDeclarations declaration = (J.VariableDeclarations) statement;
                 methodDeclaration = addWebDeclaration(declaration, methodDeclaration);
             }
-            if (statement instanceof J.Return returnStatement) {
+            if (statement instanceof J.Return) {
+                J.Return returnStatement = (J.Return) statement;
                 methodDeclaration = addWebReturn(returnStatement, methodDeclaration);
             }
-            if (statement instanceof J.Assignment assignment) {
+            if (statement instanceof J.Assignment) {
+                J.Assignment assignment = (J.Assignment) statement;
                 methodDeclaration = addWebAssignment(assignment, methodDeclaration);
             }
-            if (statement instanceof J.MethodInvocation methodInvocation) {
+            if (statement instanceof J.MethodInvocation) {
+                J.MethodInvocation methodInvocation = (J.MethodInvocation) statement;
                 methodDeclaration = addWebInvocation(statement, methodInvocation, methodDeclaration);
             }
         }
@@ -95,7 +98,8 @@ public class BinaryProxyToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
     @Nullable
     private static String getArgumentName(J.MethodInvocation methodInvocation) {
         String argName = null;
-        if (methodInvocation.getArguments().get(0) instanceof J.Identifier identifier) {
+        if (methodInvocation.getArguments().get(0) instanceof J.Identifier) {
+            J.Identifier identifier = (J.Identifier) methodInvocation.getArguments().get(0);
             argName = identifier.getSimpleName();
         }
         return argName;
@@ -126,8 +130,10 @@ public class BinaryProxyToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
     @Nullable
     private static String getArgumentName(Expression expression) {
         String argName = null;
-        if (expression instanceof J.MethodInvocation methodInvocation) {
-            if (methodInvocation.getArguments().get(0) instanceof J.Identifier identifier) {
+        if (expression instanceof J.MethodInvocation) {
+            J.MethodInvocation methodInvocation = (J.MethodInvocation) expression;
+            if (methodInvocation.getArguments().get(0) instanceof J.Identifier) {
+                J.Identifier identifier = (J.Identifier) methodInvocation.getArguments().get(0);
                 argName = identifier.getSimpleName();
             }
         }
@@ -159,7 +165,7 @@ public class BinaryProxyToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
         List<Statement> invocations = statements
                 .stream()
                 .filter(t -> t.print(getCursor()).contains(METHOD_NAME))
-                .toList();
+                .collect(Collectors.toList());
         return invocations;
     }
 

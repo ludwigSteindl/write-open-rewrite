@@ -35,28 +35,24 @@ class ChangeTypeTest implements RewriteTest {
         rewriteRun(
           //language=java
           java(
-            """
-              import java.util.ArrayList;
-              import java.util.List;
-                            
-              class MyTest {
-                void testFoo() {
-                    ArrayList<Integer> values = new java.util.ArrayList<>(List.of(1,2,3));
-                    values.forEach(v->System.out.println(v));
-                }
-              }
-              """,
-            """
-              import java.util.LinkedList;
-              import java.util.List;
-                            
-              class MyTest {
-                void testFoo() {
-                    LinkedList<Integer> values = new java.util.LinkedList<>(List.of(1,2,3));
-                    values.forEach(v->System.out.println(v));
-                }
-              }
-              """
+                  "import java.util.ArrayList;\n" +
+                  "import java.util.List;\n" +
+                  "\n" +
+                  "class MyTest {\n" +
+                  "  void testFoo() {\n" +
+                  "      ArrayList<Integer> values = new java.util.ArrayList<>(List.of(1,2,3));\n" +
+                  "      values.forEach(v->System.out.println(v));\n" +
+                  "  }\n" +
+                  "}\n",
+                  "import java.util.LinkedList;\n" +
+                  "import java.util.List;\n" +
+                  "\n" +
+                  "class MyTest {\n" +
+                  "  void testFoo() {\n" +
+                  "      LinkedList<Integer> values = new java.util.LinkedList<>(List.of(1,2,3));\n" +
+                  "      values.forEach(v->System.out.println(v));\n" +
+                  "  }\n" +
+                  "}\n"
           )
         );
     }
@@ -66,20 +62,16 @@ class ChangeTypeTest implements RewriteTest {
         rewriteRun(
           //language=java
           java(
-            """
-              package java.util;
-
-              class ArrayList {
-                void doSomething() {}
-              }
-              """,
-            """
-              package java.util;
-
-              class LinkedList {
-                void doSomething() {}
-              }
-              """
+                  "package java.util;\n" +
+                  "\n" +
+                  "class ArrayList {\n" +
+                  "  void doSomething() {}\n" +
+                  "}\n",
+                  "package java.util;\n" +
+                  "\n" +
+                  "class LinkedList {\n" +
+                  "  void doSomething() {}\n" +
+                  "}\n"
           )
         );
     }

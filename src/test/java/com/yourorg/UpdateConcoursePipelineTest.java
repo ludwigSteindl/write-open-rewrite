@@ -32,24 +32,20 @@ class UpdateConcoursePipelineTest implements RewriteTest {
           spec -> spec.recipe(new UpdateConcoursePipeline("8.2.0")),
           //language=yaml
           yaml(
-            """
-              ---
-              resources:
-                - name: tasks
-                  type: git
-                  source:
-                    uri: git@github.com:Example/concourse-tasks.git
-                    tag_filter: 8.1.0
-              """,
-            """
-              ---
-              resources:
-                - name: tasks
-                  type: git
-                  source:
-                    uri: git@github.com:Example/concourse-tasks.git
-                    tag_filter: 8.2.0
-                """,
+                  "---\n" +
+                  "resources:\n" +
+                  "  - name: tasks\n" +
+                  "    type: git\n" +
+                  "    source:\n" +
+                  "      uri: git@github.com:Example/concourse-tasks.git\n" +
+                  "      tag_filter: 8.1.0\n",
+                  "---\n" +
+                  "resources:\n" +
+                  "  - name: tasks\n" +
+                  "    type: git\n" +
+                  "    source:\n" +
+                  "      uri: git@github.com:Example/concourse-tasks.git\n" +
+                  "      tag_filter: 8.2.0\n",
             spec -> spec.path(Paths.get("ci/pipeline.yml"))
           )
         );

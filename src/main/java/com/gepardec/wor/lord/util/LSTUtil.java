@@ -76,7 +76,8 @@ public class LSTUtil {
     }
 
     public static boolean declaringTypeIsNotType(JavaType.Method method, JavaType type) {
-        if (type instanceof JavaType.Class clazz) {
+        if (type instanceof JavaType.Class) {
+            JavaType.Class clazz = (JavaType.Class) type;
             String className = clazz.getFullyQualifiedName();
             return !className.equals(method.getDeclaringType().toString());
         }

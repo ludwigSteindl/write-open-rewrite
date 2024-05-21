@@ -89,9 +89,9 @@ public class BinaryInitToWeb extends JavaIsoVisitor<ExecutionContext> {
         String setter = "set" + removeGetterPrefix(getter);
 
         String accessorClassName = LSTUtil.shortNameOfFullyQualified(accessor.getClazz());
-        String objectFactoryCreate = "%s.create%s()".formatted(OBJECT_FACTORY_NAME, accessorClassName);
+        String objectFactoryCreate = String.format("%s.create%s()", OBJECT_FACTORY_NAME, accessorClassName);
 
-        return Optional.of(SETTER_TEMPLATE.formatted(variableName, setter, objectFactoryCreate));
+        return Optional.of(String.format(SETTER_TEMPLATE, variableName, setter, objectFactoryCreate));
     }
 
     private void addObjectFactoryCreationToClass(Optional<String> wsdlTypeFromBinary) {
@@ -150,14 +150,14 @@ public class BinaryInitToWeb extends JavaIsoVisitor<ExecutionContext> {
         StringBuilder template = new StringBuilder();
 
         if (createsWebDto) {
-            template.append(NEW_WEB_DTO.formatted(wsdlType, variableName, wsdlType));
+            template.append(String.format(NEW_WEB_DTO, wsdlType, variableName, wsdlType));
         }
         if (accessor != null)
             template
                     .append(createsWebDto ? "\n" : "")
                     .append(newSetter);
 
-        if (template.isEmpty()) {
+        if (template.length() == 0) {
             return Optional.empty();
         }
 

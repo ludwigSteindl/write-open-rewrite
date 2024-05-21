@@ -43,22 +43,18 @@ class UseOpenRewriteNullableTest implements RewriteTest {
           spec -> spec.printRecipe(() -> System.out::println),
           //language=java
           java(
-            """
-              import org.jetbrains.annotations.Nullable;
-                            
-              class A {
-                  @Nullable
-                  String s;
-              }
-              """,
-            """
-              import org.openrewrite.internal.lang.Nullable;
-                            
-              class A {
-                  @Nullable
-                  String s;
-              }
-              """
+                  "import org.jetbrains.annotations.Nullable;\n" +
+                  "\n" +
+                  "class A {\n" +
+                  "    @Nullable\n" +
+                  "    String s;\n" +
+                  "}\n",
+                  "import org.openrewrite.internal.lang.Nullable;\n" +
+                  "\n" +
+                  "class A {\n" +
+                  "    @Nullable\n" +
+                  "    String s;\n" +
+                  "}\n"
           )
         );
     }

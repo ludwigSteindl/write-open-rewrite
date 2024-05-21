@@ -42,32 +42,28 @@ class JavaxOrmXmlToJakartaOrmXmlTest implements RewriteTest {
           spec -> spec.expectedCyclesThatMakeChanges(2),
           //language=xml
           xml(
-            """
-            <?xml version="1.0" encoding="UTF-8" ?>
-            <entity-mappings xmlns="http://java.sun.com/xml/ns/persistence/orm" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm http://java.sun.com/xml/ns/persistence/orm_2_0.xsd"
-                version="2.0">
-                <description>SV Batch Framework JPA Entities</description>
-            
-                <!-- SV-Batch Entity Mapping -->
-                <entity class="com.gepardec.JobDefinition" />
-                <entity class="com.gepardec.JobType" />
-            
-            </entity-mappings>
-              """,
-            """
-            <?xml version="1.0" encoding="UTF-8" ?>
-            <entity-mappings xmlns="https://jakarta.ee/xml/ns/persistence/orm" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence/orm https://jakarta.ee/xml/ns/persistence/orm/orm_3_0.xsd"
-                version="3.0">
-                <description>SV Batch Framework JPA Entities</description>
-            
-                <!-- SV-Batch Entity Mapping -->
-                <entity class="com.gepardec.JobDefinition" />
-                <entity class="com.gepardec.JobType" />
-            
-            </entity-mappings>
-              """,
+                  "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" +
+                  "<entity-mappings xmlns=\"http://java.sun.com/xml/ns/persistence/orm\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
+                  "    xsi:schemaLocation=\"http://java.sun.com/xml/ns/persistence/orm http://java.sun.com/xml/ns/persistence/orm_2_0.xsd\"\n" +
+                  "    version=\"2.0\">\n" +
+                  "    <description>SV Batch Framework JPA Entities</description>\n" +
+                  "\n" +
+                  "    <!-- SV-Batch Entity Mapping -->\n" +
+                  "    <entity class=\"com.gepardec.JobDefinition\" />\n" +
+                  "    <entity class=\"com.gepardec.JobType\" />\n" +
+                  "\n" +
+                  "</entity-mappings>\n",
+                  "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" +
+                  "<entity-mappings xmlns=\"https://jakarta.ee/xml/ns/persistence/orm\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
+                  "    xsi:schemaLocation=\"https://jakarta.ee/xml/ns/persistence/orm https://jakarta.ee/xml/ns/persistence/orm/orm_3_0.xsd\"\n" +
+                  "    version=\"3.0\">\n" +
+                  "    <description>SV Batch Framework JPA Entities</description>\n" +
+                  "\n" +
+                  "    <!-- SV-Batch Entity Mapping -->\n" +
+                  "    <entity class=\"com.gepardec.JobDefinition\" />\n" +
+                  "    <entity class=\"com.gepardec.JobType\" />\n" +
+                  "\n" +
+                  "</entity-mappings>\n",
             sourceSpecs -> sourceSpecs.path("myapp-orm.xml")
           )
         );

@@ -38,9 +38,7 @@ class ClassHierarchyTest implements RewriteTest {
           }),
           //language=java
           java(
-            """
-              class A {}
-              """
+                  "class A {}\n"
           )
         );
     }
@@ -55,15 +53,11 @@ class ClassHierarchyTest implements RewriteTest {
           }),
           //language=java
           java(
-            """
-              class A {}
-              """
+                  "class A {}\n"
           ),
           //language=java
           java(
-            """
-              class B extends A {}
-              """
+                  "class B extends A {}\n"
           )
         );
     }
@@ -78,10 +72,8 @@ class ClassHierarchyTest implements RewriteTest {
           }),
           // language=java
           java(
-            """
-              import java.io.Serializable;
-              class A implements Serializable {}
-              """
+                  "import java.io.Serializable;\n" +
+                  "class A implements Serializable {}\n"
           )
         );
     }

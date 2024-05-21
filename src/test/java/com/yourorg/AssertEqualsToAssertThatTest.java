@@ -38,24 +38,20 @@ class AssertEqualsToAssertThatTest implements RewriteTest {
         rewriteRun(
           //language=java
           java(
-            """
-              import org.junit.jupiter.api.Assertions;
-                            
-              class A {
-                  void foo() {
-                      Assertions.assertEquals(1, 2);
-                  }
-              }
-              """,
-            """
-              import org.assertj.core.api.Assertions;
-                          
-              class A {
-                  void foo() {
-                      Assertions.assertThat(2).isEqualTo(1);
-                  }
-              }
-              """
+                  "import org.junit.jupiter.api.Assertions;\n" +
+                  "\n" +
+                  "class A {\n" +
+                  "    void foo() {\n" +
+                  "        Assertions.assertEquals(1, 2);\n" +
+                  "    }\n" +
+                  "}\n",
+                  "import org.assertj.core.api.Assertions;\n" +
+                  "\n" +
+                  "class A {\n" +
+                  "    void foo() {\n" +
+                  "        Assertions.assertThat(2).isEqualTo(1);\n" +
+                  "    }\n" +
+                  "}\n"
           )
         );
     }
@@ -65,24 +61,20 @@ class AssertEqualsToAssertThatTest implements RewriteTest {
         rewriteRun(
           //language=java
           java(
-            """
-              import org.junit.jupiter.api.Assertions;
-                            
-              class A {
-                  void foo() {
-                      Assertions.assertEquals(1, 2, "one equals two, everyone knows that");
-                  }
-              }
-              """,
-            """
-              import org.assertj.core.api.Assertions;
-                            
-              class A {
-                  void foo() {
-                      Assertions.assertThat(2).as("one equals two, everyone knows that").isEqualTo(1);
-                  }
-              }
-              """
+                  "import org.junit.jupiter.api.Assertions;\n" +
+                  "\n" +
+                  "class A {\n" +
+                  "    void foo() {\n" +
+                  "        Assertions.assertEquals(1, 2, \"one equals two, everyone knows that\");\n" +
+                  "    }\n" +
+                  "}\n",
+                  "import org.assertj.core.api.Assertions;\n" +
+                  "\n" +
+                  "class A {\n" +
+                  "    void foo() {\n" +
+                  "        Assertions.assertThat(2).as(\"one equals two, everyone knows that\").isEqualTo(1);\n" +
+                  "    }\n" +
+                  "}\n"
           )
         );
     }

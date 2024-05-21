@@ -82,15 +82,12 @@ public class BinarySetterToWeb extends JavaIsoVisitor<ExecutionContext> {
     }
 
     private String createObjectFactoryInitializer(String argument, Accessor accessor) {
-        String objectFactoryName = "objectFactory";
-        //objectFactory.createLaqaumv4Datenv3Postleitzahl("1220")
-
         String fieldName = capitalizeFirstLetter(cutPrefixFromMethodName(accessor.getName()));
         String parentPart =  accessor.getParent()
                 .map(Accessor::getType)
                 .map(LSTUtil::shortNameOfFullyQualified)
                 .orElse("");
-        return "objectFactory.create%s%s(%s)".formatted(parentPart, fieldName, argument);
+        return String.format("objectFactory.create%s%s(%s)", parentPart, fieldName, argument);
 
     }
 

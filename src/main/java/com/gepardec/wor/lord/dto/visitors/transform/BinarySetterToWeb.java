@@ -10,6 +10,7 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 
+import javax.swing.*;
 import java.util.Optional;
 
 public class BinarySetterToWeb extends JavaIsoVisitor<ExecutionContext> {
@@ -44,7 +45,7 @@ public class BinarySetterToWeb extends JavaIsoVisitor<ExecutionContext> {
     private J.MethodInvocation changeToBinarySetter(J.MethodInvocation method) {
         Optional<Accessor> accessor = findWebAccessorForBinary(method);
         String instanceName = method.getSelect().toString();
-        String argument = LSTUtil.getFirstArgument(method, getCursor());
+        String argument = getArgumentStatement(method);
 
         if (accessor.isEmpty()) {
             return method;
@@ -58,6 +59,39 @@ public class BinarySetterToWeb extends JavaIsoVisitor<ExecutionContext> {
                 generateWebDtoSetter(accessor.get(), method.getSimpleName()),
                 argument
         );
+    }
+
+    private String getArgumentStatement(J.MethodInvocation method) {
+        Optional<Accessor> accessor = findWebAccessorForBinary(method);
+        String argument = LSTUtil.getFirstArgument(method, getCursor());
+
+        if (accessor.isEmpty()) {
+            return argument;
+        }
+
+        if (!accessor.get().getType().contains("JAXBElement")) {
+            return argument;
+        }
+
+        return createObjectFactoryInitializer(argument, accessor.get());
+
+    }
+
+    private String capitalizeFirstLetter(String string) {
+        return string.substring(0, 1).toUpperCase() + string.substring(1);
+    }
+
+    private String createObjectFactoryInitializer(String argument, Accessor accessor) {
+        String objectFactoryName = "objectFactory";
+        //objectFactory.createLaqaumv4Datenv3Postleitzahl("1220")
+
+        String fieldName = capitalizeFirstLetter(cutPrefixFromMethodName(accessor.getName()));
+        String parentPart =  accessor.getParent()
+                .map(Accessor::getType)
+                .map(LSTUtil::shortNameOfFullyQualified)
+                .orElse("");
+        return "objectFactory.create%s%s(%s)".formatted(parentPart, fieldName, argument);
+
     }
 
     private Optional<Accessor> findWebAccessorForBinary(J.MethodInvocation method) {
@@ -85,7 +119,10 @@ public class BinarySetterToWeb extends JavaIsoVisitor<ExecutionContext> {
         if (methodName.startsWith("is")) {
             return methodName.substring(2);
         }
-        return methodName.substring(3);
+        if (methodName.startsWith("get") || methodName.startsWith("set")) {
+            return methodName.substring(3);
+        }
+        return methodName;
     }
 
     private Optional<Accessor> findWebAccessorForBinary(String methodName, String methodType) {

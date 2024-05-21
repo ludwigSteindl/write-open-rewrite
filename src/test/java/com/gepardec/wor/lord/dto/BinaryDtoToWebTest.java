@@ -163,7 +163,7 @@ public class BinaryDtoToWebTest implements RewriteTest {
                 public void test() {
                     Laqaumv4 request = new Laqaumv4();
                     request.setDatenv3(objectFactory.createLaqaumv4Datenv3());
-                    request.getDatenv3().setPostleitzahl("1220");
+                    request.getDatenv3().setPostleitzahl(objectFactory.createLaqaumv4Datenv3Postleitzahl("1220"));
                 }
             }
             """)
@@ -202,8 +202,8 @@ public class BinaryDtoToWebTest implements RewriteTest {
                     request.setStdh(objectFactory.createOmStandardRequestHeader());
                     request.setMxcb(objectFactory.createMxcb());
                     request.setDatenv3(objectFactory.createLaqaumv4Datenv3());
-                    request.getDatenv3().setPostleitzahl("1220");
-                    request.getMxcb().setCReserved("test");
+                    request.getDatenv3().setPostleitzahl(objectFactory.createLaqaumv4Datenv3Postleitzahl("1220"));
+                    request.getMxcb().setCReserved(objectFactory.createMxcbCReserved("test"));
                     request.getStdh().setZvst("11");
                 }
             }

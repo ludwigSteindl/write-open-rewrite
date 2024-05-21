@@ -120,11 +120,17 @@ public class WSDLTypesSearch extends JavaIsoVisitor<ExecutionContext> {
     }
 
     private static @NotNull Accessor createParentAccessor(JavaType.Method method, Accessor filteredParent) {
-        return new Accessor(method.getName(), method.getDeclaringType().getFullyQualifiedName(), filteredParent);
+        return initBuilder(method).parent(filteredParent).build();
     }
 
     private static @NotNull Accessor createAccessor(JavaType.Method method) {
-        return new Accessor(method.getName(), method.getDeclaringType().getFullyQualifiedName());
+        return initBuilder(method).build();
+    }
+
+    private static Accessor.Builder initBuilder(JavaType.Method method) {
+        Accessor.Builder builder = Accessor.builder(method.getName(), method.getDeclaringType().getFullyQualifiedName());
+        builder.type(method.getReturnType().toString());
+        return builder;
     }
 
     private static Optional<Accessor> removeRootParent(Accessor parent, String rootName) {

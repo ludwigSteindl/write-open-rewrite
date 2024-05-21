@@ -21,11 +21,11 @@ description: These recipes help with the Migration to Jakarta EE 10.
 tags:
   - jakarta
 recipeList:
-  - org.openrewrite.java.migrate.jakarta.JavaxBeansXmlToJakartaBeansXml
+  - org.openrewrite.java.migrate.jakarta.JavaxOrmXmlToJakartaOrmXml
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.migrate.jakarta.JavaxBeansXmlToJakartaBeansXml
-displayName: Migrate xmlns entries in `beans.xml` files
+name: org.openrewrite.java.migrate.jakarta.JavaxOrmXmlToJakartaOrmXml
+displayName: Migrate xmlns entries in `*orm.xml` files
 description: Java EE has been rebranded to Jakarta EE, necessitating an XML namespace relocation.
 tags:
   - jakarta

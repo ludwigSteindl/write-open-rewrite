@@ -99,6 +99,43 @@ public class BinaryDtoToWebTest implements RewriteTest {
     }
     @DocumentExample
     @Test
+    public void whenBinaryStdhSetWith2TimesSameType_thenCreateWebStdh() {
+        LOG.info("Start Test");
+        rewriteRunWithWsdlClasses(
+          //language=java
+          java("""
+          package com.gepardec.wor.lord;
+          
+          import com.gepardec.wor.lord.stubs.Laqaumv4Dto;
+          
+          public class Test {
+              public void test() {
+                  Laqaumv4Dto request = new Laqaumv4Dto();
+                  request.setZvst("11");
+                  request.setTransactionid(1L);
+              }
+          }
+          """,
+            """
+            package com.gepardec.wor.lord;
+            
+            import at.sozvers.stp.lgkk.a02.laaaumv4.Laqaumv4;
+            import at.sozvers.stp.lgkk.a02.laaaumv4.ObjectFactory;
+            
+            public class Test {
+                private static final ObjectFactory objectFactory = new ObjectFactory();
+                public void test() {
+                    Laqaumv4 request = new Laqaumv4();
+                    request.setStdh(objectFactory.createOmStandardRequestHeader());
+                    request.getStdh().setZvst("11");
+                    request.getStdh().setTransactionid(1L);
+                }
+            }
+            """)
+        );
+    }
+    @DocumentExample
+    @Test
     public void whenBinarySetterWithNestedWebObjectUsed_thenCreateNestedWebDto() {
         LOG.info("Start Test");
         rewriteRunWithWsdlClasses(

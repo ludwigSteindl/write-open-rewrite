@@ -81,9 +81,9 @@ public class BinaryInitToWeb extends JavaIsoVisitor<ExecutionContext> {
         return updateMethodToInitializeWebDto(method, dtoDeclarations.get(), createsWebDto, wsdlType);
     }
 
-    public String createSetterStatement(Accessor accessor) {
+    public Optional<String> createSetterStatement(Accessor accessor) {
         if (accessor.getParent().isEmpty()) {
-            return "";
+            return Optional.empty();
         }
         String getter = accessor.getParent().get().getName();
         String setter = "set" + removeGetterPrefix(getter);
@@ -91,7 +91,7 @@ public class BinaryInitToWeb extends JavaIsoVisitor<ExecutionContext> {
         String accessorClassName = LSTUtil.shortNameOfFullyQualified(accessor.getClazz());
         String objectFactoryCreate = "%s.create%s()".formatted(OBJECT_FACTORY_NAME, accessorClassName);
 
-        return SETTER_TEMPLATE.formatted(variableName, setter, objectFactoryCreate);
+        return Optional.of(SETTER_TEMPLATE.formatted(variableName, setter, objectFactoryCreate));
     }
 
     private void addObjectFactoryCreationToClass(Optional<String> wsdlTypeFromBinary) {
@@ -102,10 +102,24 @@ public class BinaryInitToWeb extends JavaIsoVisitor<ExecutionContext> {
 
     private J.MethodDeclaration updateMethodToInitializeWebDto(J.MethodDeclaration method, J.VariableDeclarations dtoDeclarations, boolean createsWebDto, String newType) {
         JavaCoordinates coordinates = getTemplateCoordinates(dtoDeclarations, createsWebDto);
-        return getCreateDtoJavaTemplate(newType, createsWebDto)
+
+        Optional<String> lineToBeCreated = createSetterStatement(accessor);
+        String newSetter = lineToBeCreated.orElse("");
+        if (containsMethodInvocationOf(method, newSetter)) {
+            newSetter = "";
+        }
+        return getCreateDtoJavaTemplate(newType, newSetter, createsWebDto)
                 .map(javaTemplate -> javaTemplate.apply(updateCursor(method), coordinates))
                 .map(J.MethodDeclaration.class::cast)
                 .orElse(method);
+    }
+
+    private boolean containsMethodInvocationOf(J.MethodDeclaration method, String newSetter) {
+        return LSTUtil.getStatements(method)
+                .stream()
+                .map(statement -> statement.printTrimmed(getCursor()))
+                .map(s -> s + ";")
+                .anyMatch(line -> line.equals(newSetter));
     }
 
     private static @NotNull JavaCoordinates getTemplateCoordinates(J.VariableDeclarations dtoDeclarations, boolean createsWebDto) {
@@ -132,7 +146,7 @@ public class BinaryInitToWeb extends JavaIsoVisitor<ExecutionContext> {
         return getter.substring(getter.startsWith("is") ? 2 : 3);
     }
 
-    private Optional<JavaTemplate> getCreateDtoJavaTemplate(String wsdlType, boolean createsWebDto) {
+    private Optional<JavaTemplate> getCreateDtoJavaTemplate(String wsdlType, String newSetter, boolean createsWebDto) {
         StringBuilder template = new StringBuilder();
 
         if (createsWebDto) {
@@ -141,7 +155,7 @@ public class BinaryInitToWeb extends JavaIsoVisitor<ExecutionContext> {
         if (accessor != null)
             template
                     .append(createsWebDto ? "\n" : "")
-                    .append(createSetterStatement((accessor)));
+                    .append(newSetter);
 
         if (template.isEmpty()) {
             return Optional.empty();

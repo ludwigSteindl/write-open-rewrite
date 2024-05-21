@@ -82,9 +82,7 @@ public class WSDLTypesSearch extends JavaIsoVisitor<ExecutionContext> {
                         createParentAccessor(method, filteredParent.orElse(null)),
                         rootName))
                     .forEach(accessors::addAll);
-            }
-
-
+        }
 
         return accessors;
     }

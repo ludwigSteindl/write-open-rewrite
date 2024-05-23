@@ -36,20 +36,24 @@ class UseApacheStringUtilsTest implements RewriteTest {
         rewriteRun(
           //language=java
           java(
-                  "import org.springframework.util.StringUtils;\n" +
-                  "\n" +
-                  "class A {\n" +
-                  "    boolean test(String s) {\n" +
-                  "        return StringUtils.containsWhitespace(s);\n" +
-                  "    }\n" +
-                  "}\n",
-                  "import org.apache.commons.lang3.StringUtils;\n" +
-                  "\n" +
-                  "class A {\n" +
-                  "    boolean test(String s) {\n" +
-                  "        return StringUtils.containsWhitespace(s);\n" +
-                  "    }\n" +
-                  "}\n"
+                  """
+                  import org.springframework.util.StringUtils;
+                  
+                  class A {
+                      boolean test(String s) {
+                          return StringUtils.containsWhitespace(s);
+                      }
+                  }
+                  """,
+                  """
+                  import org.apache.commons.lang3.StringUtils;
+                  
+                  class A {
+                      boolean test(String s) {
+                          return StringUtils.containsWhitespace(s);
+                      }
+                  }
+                  """
           )
         );
     }

@@ -63,8 +63,8 @@ public class AppendToReleaseNotes extends ScanningRecipe<AppendToReleaseNotes.Ac
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (tree instanceof SourceFile) {
-                    Path sourcePath = ((SourceFile) tree).getSourcePath();
+                if (tree instanceof SourceFile file) {
+                    Path sourcePath = file.getSourcePath();
                     acc.found |= "RELEASE.md".equals(sourcePath.toString());
                 }
                 return tree;

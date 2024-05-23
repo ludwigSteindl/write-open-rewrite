@@ -45,8 +45,10 @@ class AppendToReleaseNotesTest implements RewriteTest {
         rewriteRun(
           text(
                   "You say goodbye, I say\n",
-                  "You say goodbye, I say\n" +
-                  "Hello world\n",
+                  """
+                  You say goodbye, I say
+                  Hello world
+                  """,
             spec -> spec.path(Paths.get("RELEASE.md")
             )
           )

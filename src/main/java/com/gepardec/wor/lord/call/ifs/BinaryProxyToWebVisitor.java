@@ -21,11 +21,13 @@ public class BinaryProxyToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
             .contextSensitive()
             .build();
 
-    private final static String IF_TEMPLATE = "if(useWeb) {\n" +
-            "    %s\n" +
-            "} else {\n" +
-            "    #{any()};\n" +
-            "}\n";
+    private final static String IF_TEMPLATE = """
+                            if(useWeb) {
+                                %s
+                            } else {
+                                #{any()};
+                            }
+                            """;
     private final static JavaTemplate IF_INITIALIZATION = JavaTemplate
             .builder(String.format(IF_TEMPLATE, "AuMhHostInfoResponseDto #{} = callSvcWeb(#{});"))
             .javaParser(Parsers.createParserWithRuntimeClasspath())
@@ -64,20 +66,16 @@ public class BinaryProxyToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
         }
 
         for (Statement statement : statementsWithInvocation) {
-            if (statement instanceof J.VariableDeclarations) {
-                J.VariableDeclarations declaration = (J.VariableDeclarations) statement;
+            if (statement instanceof J.VariableDeclarations declaration) {
                 methodDeclaration = addWebDeclaration(declaration, methodDeclaration);
             }
-            if (statement instanceof J.Return) {
-                J.Return returnStatement = (J.Return) statement;
+            if (statement instanceof J.Return returnStatement) {
                 methodDeclaration = addWebReturn(returnStatement, methodDeclaration);
             }
-            if (statement instanceof J.Assignment) {
-                J.Assignment assignment = (J.Assignment) statement;
+            if (statement instanceof J.Assignment assignment) {
                 methodDeclaration = addWebAssignment(assignment, methodDeclaration);
             }
-            if (statement instanceof J.MethodInvocation) {
-                J.MethodInvocation methodInvocation = (J.MethodInvocation) statement;
+            if (statement instanceof J.MethodInvocation methodInvocation) {
                 methodDeclaration = addWebInvocation(statement, methodInvocation, methodDeclaration);
             }
         }
@@ -130,8 +128,7 @@ public class BinaryProxyToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
     @Nullable
     private static String getArgumentName(Expression expression) {
         String argName = null;
-        if (expression instanceof J.MethodInvocation) {
-            J.MethodInvocation methodInvocation = (J.MethodInvocation) expression;
+        if (expression instanceof J.MethodInvocation methodInvocation) {
             if (methodInvocation.getArguments().get(0) instanceof J.Identifier) {
                 J.Identifier identifier = (J.Identifier) methodInvocation.getArguments().get(0);
                 argName = identifier.getSimpleName();

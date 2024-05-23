@@ -50,19 +50,23 @@ class NoGuavaListsNewArrayListTest implements RewriteTest {
               .classpath("guava")),
           // language=java
           java(
-                  "import com.google.common.collect.*;\n" +
-                  "\n" +
-                  "import java.util.List;\n" +
-                  "\n" +
-                  "class Test {\n" +
-                  "    List<Integer> cardinalsWorldSeries = Lists.newArrayList();\n" +
-                  "}\n",
-                  "import java.util.ArrayList;\n" +
-                  "import java.util.List;\n" +
-                  "\n" +
-                  "class Test {\n" +
-                  "    List<Integer> cardinalsWorldSeries = new ArrayList<>();\n" +
-                  "}\n"
+                  """
+                  import com.google.common.collect.*;
+                  
+                  import java.util.List;
+                  
+                  class Test {
+                      List<Integer> cardinalsWorldSeries = Lists.newArrayList();
+                  }
+                  """,
+                  """
+                  import java.util.ArrayList;
+                  import java.util.List;
+                  
+                  class Test {
+                      List<Integer> cardinalsWorldSeries = new ArrayList<>();
+                  }
+                  """
           )
         );
     }
@@ -72,23 +76,27 @@ class NoGuavaListsNewArrayListTest implements RewriteTest {
         rewriteRun(
           // language=java
           java(
-                  "import com.google.common.collect.*;\n" +
-                  "\n" +
-                  "import java.util.Collections;\n" +
-                  "import java.util.List;\n" +
-                  "\n" +
-                  "class Test {\n" +
-                  "    List<Integer> l = Collections.emptyList();\n" +
-                  "    List<Integer> cardinalsWorldSeries = Lists.newArrayList(l);\n" +
-                  "}\n",
-                  "import java.util.ArrayList;\n" +
-                  "import java.util.Collections;\n" +
-                  "import java.util.List;\n" +
-                  "\n" +
-                  "class Test {\n" +
-                  "    List<Integer> l = Collections.emptyList();\n" +
-                  "    List<Integer> cardinalsWorldSeries = new ArrayList<>(l);\n" +
-                  "}\n"
+                  """
+                  import com.google.common.collect.*;
+                  
+                  import java.util.Collections;
+                  import java.util.List;
+                  
+                  class Test {
+                      List<Integer> l = Collections.emptyList();
+                      List<Integer> cardinalsWorldSeries = Lists.newArrayList(l);
+                  }
+                  """,
+                  """
+                  import java.util.ArrayList;
+                  import java.util.Collections;
+                  import java.util.List;
+                  
+                  class Test {
+                      List<Integer> l = Collections.emptyList();
+                      List<Integer> cardinalsWorldSeries = new ArrayList<>(l);
+                  }
+                  """
           )
         );
     }
@@ -98,20 +106,24 @@ class NoGuavaListsNewArrayListTest implements RewriteTest {
         rewriteRun(
           // language=java
           java(
-                  "import com.google.common.collect.*;\n" +
-                  "\n" +
-                  "import java.util.ArrayList;\n" +
-                  "import java.util.List;\n" +
-                  "\n" +
-                  "class Test {\n" +
-                  "    List<Integer> cardinalsWorldSeries = Lists.newArrayListWithCapacity(2);\n" +
-                  "}\n",
-                  "import java.util.ArrayList;\n" +
-                  "import java.util.List;\n" +
-                  "\n" +
-                  "class Test {\n" +
-                  "    List<Integer> cardinalsWorldSeries = new ArrayList<>(2);\n" +
-                  "}\n")
+                  """
+                  import com.google.common.collect.*;
+                  
+                  import java.util.ArrayList;
+                  import java.util.List;
+                  
+                  class Test {
+                      List<Integer> cardinalsWorldSeries = Lists.newArrayListWithCapacity(2);
+                  }
+                  """,
+                  """
+                  import java.util.ArrayList;
+                  import java.util.List;
+                  
+                  class Test {
+                      List<Integer> cardinalsWorldSeries = new ArrayList<>(2);
+                  }
+                  """)
         );
     }
 
@@ -121,21 +133,25 @@ class NoGuavaListsNewArrayListTest implements RewriteTest {
         rewriteRun(
           //language=java
           java(
-                  "import com.google.common.collect.*;\n" +
-                  "\n" +
-                  "import java.util.Collections;\n" +
-                  "import java.util.List;\n" +
-                  "\n" +
-                  "class Test {\n" +
-                  "    List<Integer> cardinalsWorldSeries = Collections.unmodifiableList(Lists.newArrayList());\n" +
-                  "}\n",
-                  "import java.util.ArrayList;\n" +
-                  "import java.util.Collections;\n" +
-                  "import java.util.List;\n" +
-                  "\n" +
-                  "class Test {\n" +
-                  "    List<Integer> cardinalsWorldSeries = Collections.unmodifiableList(new ArrayList<>());\n" +
-                  "}\n"
+                  """
+                  import com.google.common.collect.*;
+                  
+                  import java.util.Collections;
+                  import java.util.List;
+                  
+                  class Test {
+                      List<Integer> cardinalsWorldSeries = Collections.unmodifiableList(Lists.newArrayList());
+                  }
+                  """,
+                  """
+                  import java.util.ArrayList;
+                  import java.util.Collections;
+                  import java.util.List;
+                  
+                  class Test {
+                      List<Integer> cardinalsWorldSeries = Collections.unmodifiableList(new ArrayList<>());
+                  }
+                  """
           )
         );
     }
@@ -147,13 +163,15 @@ class NoGuavaListsNewArrayListTest implements RewriteTest {
         rewriteRun(
           //language=java
           java(
-                  "import java.util.ArrayList;\n" +
-                  "import java.util.Collections;\n" +
-                  "import java.util.List;\n" +
-                  "\n" +
-                  "class Test {\n" +
-                  "    List<Integer> cardinalsWorldSeries = Collections.unmodifiableList(new ArrayList<>());\n" +
-                  "}\n"
+                  """
+                  import java.util.ArrayList;
+                  import java.util.Collections;
+                  import java.util.List;
+                  
+                  class Test {
+                      List<Integer> cardinalsWorldSeries = Collections.unmodifiableList(new ArrayList<>());
+                  }
+                  """
           )
         );
     }

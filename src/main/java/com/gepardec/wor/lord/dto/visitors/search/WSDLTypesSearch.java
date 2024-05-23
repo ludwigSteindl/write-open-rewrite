@@ -145,8 +145,7 @@ public class WSDLTypesSearch extends JavaIsoVisitor<ExecutionContext> {
             JavaType returnType = method.getReturnType();
 
             List<JavaType.Class> types = new LinkedList<>();
-            if (returnType instanceof JavaType.Class) {
-                JavaType.Class clazz = (JavaType.Class) returnType;
+            if (returnType instanceof JavaType.Class clazz) {
                 types.add(clazz);
             }
             if (parent == null) {
@@ -227,8 +226,7 @@ public class WSDLTypesSearch extends JavaIsoVisitor<ExecutionContext> {
      }
 
     private static boolean isDtoType(JavaType type) {
-         if ( type instanceof JavaType.Class) {
-             JavaType.Class clazz = (JavaType.Class) type;
+         if ( type instanceof JavaType.Class clazz) {
              String className = clazz.getFullyQualifiedName();
              return className.contains("at.sozvers.stp.lgkk.a02") || (hasDtoTypeParameter(clazz));
          }

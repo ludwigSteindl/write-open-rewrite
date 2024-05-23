@@ -72,8 +72,10 @@ class ClassHierarchyTest implements RewriteTest {
           }),
           // language=java
           java(
-                  "import java.io.Serializable;\n" +
-                  "class A implements Serializable {}\n"
+                  """
+                  import java.io.Serializable;
+                  class A implements Serializable {}
+                  """
           )
         );
     }

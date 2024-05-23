@@ -10,9 +10,11 @@ public class BinaryProxyToWebConfigClassVisitor extends JavaIsoVisitor<Execution
     private static final String CLASS_NAME = "ElgkkPropertiesUtil";
     private static final String USE_WEB_GETTER_NAME = "isUseWeb";
     private static final JavaTemplate USE_WEB_GETTER = JavaTemplate
-            .builder("public static boolean #{}() {\n" +
-                    "    return true;\n" +
-                    "}\n")
+            .builder("""
+                    public static boolean #{}() {
+                        return true;
+                    }
+                    """)
             .build();
     @Override
     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDeclaration, ExecutionContext ctx) {

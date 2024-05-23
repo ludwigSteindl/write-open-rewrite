@@ -9,10 +9,9 @@ import org.openrewrite.java.AddImport;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.RemoveImport;
-import org.openrewrite.java.tree.CoordinateBuilder;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaCoordinates;
-import org.openrewrite.java.tree.Statement;
+import org.openrewrite.java.tree.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +20,8 @@ public class BinaryInitToWeb extends JavaIsoVisitor<ExecutionContext> {
     private String variableName;
     private Accessor accessor;
     private Accumulator accumulator;
+
+    private static final Logger LOG = LoggerFactory.getLogger(BinaryInitToWeb.class);
 
     // Template for creating a new instance of a type
     // pos1 & pos3: type name
@@ -104,11 +105,17 @@ public class BinaryInitToWeb extends JavaIsoVisitor<ExecutionContext> {
         JavaCoordinates coordinates = getTemplateCoordinates(dtoDeclarations, createsWebDto);
 
         Optional<String> lineToBeCreated = createSetterStatement(accessor);
-        String newSetter = lineToBeCreated.orElse("");
-        if (containsMethodInvocationOf(method, newSetter)) {
-            newSetter = "";
-        }
-        return getCreateDtoJavaTemplate(newType, newSetter, createsWebDto)
+        String newSetter = lineToBeCreated
+                .filter(setter -> containsMethodInvocationOf(method, setter))
+                .orElse("");
+
+
+        Optional<JavaTemplate> initStatements = getCreateDtoJavaTemplate(newType, newSetter, createsWebDto);
+        initStatements
+                .ifPresent(statements ->  LOG.info("Changing Dto init " +
+                    method.printTrimmed(getCursor()) +
+                    "to: " + statements.getCode()));
+        return initStatements
                 .map(javaTemplate -> javaTemplate.apply(updateCursor(method), coordinates))
                 .map(J.MethodDeclaration.class::cast)
                 .orElse(method);

@@ -8,9 +8,15 @@ import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.xml.bind.JAXBElement;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -18,31 +24,100 @@ import java.util.stream.Collectors;
 
 
 public class WSDLTypesSearch extends JavaIsoVisitor<ExecutionContext> {
+
     private Accumulator accumulator;
+
+    private static final Logger LOG = LoggerFactory.getLogger(WSDLTypesSearch.class);
 
     public WSDLTypesSearch(Accumulator accumulator) {
         this.accumulator = accumulator;
     }
 
     @Override
-    public @Nullable J.ClassDeclaration visitClassDeclaration(@Nullable J.ClassDeclaration classDeclaration,
+    public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl,
                                                               ExecutionContext ctx) {
-        classDeclaration = super.visitClassDeclaration(classDeclaration, ctx);
-        if (!LSTUtil.isInterface(classDeclaration)) {
+        J.ClassDeclaration classDeclaration = super.visitClassDeclaration(classDecl, ctx);
+        String packagePrefix = "at.sozvers.stp.lgkk.a02";
+        if (!classDeclaration.getType().getPackageName().startsWith(packagePrefix)) {
             return classDeclaration;
         }
 
-        Wsdl2JavaService service = createServiceWithAccessors(classDeclaration);
-        accumulator.addService(service);
+        if (LSTUtil.isInterface(classDeclaration)) {
+            addRootToAccumulator(classDeclaration);
+            return classDeclaration;
+        }
+
+        List<Accessor> accessors = LSTUtil.extractStatementsOfType(classDeclaration.getBody().getStatements(), J.MethodDeclaration.class)
+                .stream()
+                .map(methodDeclaration -> Accessor
+                        .builder(
+                                methodDeclaration.getSimpleName(),
+                                classDeclaration.getSimpleName())
+                        .type(methodDeclaration.getReturnTypeExpression() == null ? "" : methodDeclaration.getReturnTypeExpression().toString())
+                        .build())
+                .collect(Collectors.toList());
+
+
+        Wsdl2JavaService wsdl2JavaService = getWsdl2JavaService(classDeclaration);
+        wsdl2JavaService.addAccessors(accessors);
 
         return classDeclaration;
     }
 
-    private @NotNull Wsdl2JavaService createServiceWithAccessors(J.ClassDeclaration classDeclaration) {
-        String className = classDeclaration.getSimpleName();
-        Wsdl2JavaService service = createService(LSTUtil.getMethodDeclarations(classDeclaration), className);
-        service.addAccessors(createAccessors(classDeclaration));
-        return service;
+    @NotNull
+    private Wsdl2JavaService getWsdl2JavaService(J.ClassDeclaration classDeclaration) {
+        Optional<Wsdl2JavaService> service = accumulator.getService(classDeclaration.getType().getPackageName());
+        Wsdl2JavaService wsdl2JavaService;
+        if (service.isEmpty()) {
+            List<J.MethodDeclaration> methods =  LSTUtil.extractStatementsOfType(classDeclaration.getBody().getStatements(), J.MethodDeclaration.class);
+            wsdl2JavaService = createService(methods, classDeclaration.getSimpleName());
+            accumulator.addService(classDeclaration.getType().getPackageName(), wsdl2JavaService);
+        } else {
+            wsdl2JavaService = service.get();
+        }
+        return wsdl2JavaService;
+    }
+
+    private void addRootToAccumulator(J.ClassDeclaration classDeclaration) {
+        Wsdl2JavaService service = getWsdl2JavaService(classDeclaration);
+        List<Accessor> accessors = LSTUtil.extractStatementsOfType(classDeclaration.getBody().getStatements(), J.MethodDeclaration.class)
+                .stream()
+                .map(methodDeclaration -> createAccessors(classDeclaration, methodDeclaration))
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+        service.setRoot(accessors);
+
+        List<J.MethodDeclaration> methods = LSTUtil.extractStatementsOfType(classDeclaration.getBody().getStatements(), J.MethodDeclaration.class);
+        List<String> requestTypes = LSTUtil.getParameterTypes(methods);
+        List<String> responseTypes = LSTUtil.getReturnTypes(methods);
+        service.setRequestTypes(requestTypes);
+        service.setResponseTypes(responseTypes);
+        accumulator.addService(classDeclaration.getType().getPackageName(), service);
+    }
+
+    @NotNull
+    private static List<Accessor> createAccessors(J.ClassDeclaration classDeclaration, J.MethodDeclaration methodDeclaration) {
+        List<Accessor> accessors = new ArrayList<>();
+        String returnType = methodDeclaration.getReturnTypeExpression().toString();
+        if (!returnType.equals("void")) {
+            accessors.add(Accessor
+                    .builder(
+                            methodDeclaration.getSimpleName(),
+                            classDeclaration.getSimpleName())
+                    .type(methodDeclaration.getReturnTypeExpression().toString())
+                    .build());
+        }
+        Statement param1 = methodDeclaration.getParameters().get(0);
+        if (param1 instanceof J.Empty) {
+            return accessors;
+        }
+        accessors.add(Accessor
+            .builder(
+                    methodDeclaration.getSimpleName(),
+                    classDeclaration.getSimpleName())
+            .type(((J.VariableDeclarations) param1).getTypeExpression().toString())
+            .build());
+        return accessors;
     }
 
     private static @NotNull Wsdl2JavaService createService(List<J.MethodDeclaration> methods, String className) {
@@ -61,6 +136,7 @@ public class WSDLTypesSearch extends JavaIsoVisitor<ExecutionContext> {
 
     private static List<Accessor> createAccessors(List<JavaType.Method> methods, Accessor parent, String rootName) {
         Optional<Accessor> filteredParent = removeRootParent(parent, rootName);
+        JAXBElement<String> elem = new JAXBElement<>(null, String.class, "a");
 
         List<Accessor> accessors = extractMethodsNotReturningSubDtos(methods, filteredParent);
 

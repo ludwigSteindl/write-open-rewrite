@@ -15,7 +15,7 @@
  */
 package com.gepardec.wor.xml;
 
-import com.gepardec.wor.lord.util.ParserUtil;
+import com.gepardec.wor.lord.util.Parsers;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.config.Environment;
@@ -28,7 +28,7 @@ class JavaxOrmXmlToJakartaOrmXmlTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .parser(ParserUtil.createParserWithRuntimeClasspath())
+          .parser(Parsers.createParserWithRuntimeClasspath())
           .recipe(Environment.builder()
             .scanRuntimeClasspath("com.gepardec.wor")
             .build()

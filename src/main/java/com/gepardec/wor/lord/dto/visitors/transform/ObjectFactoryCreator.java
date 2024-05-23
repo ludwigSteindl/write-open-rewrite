@@ -6,10 +6,15 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.J;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class ObjectFactoryCreator extends JavaIsoVisitor<ExecutionContext> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ObjectFactoryCreator.class);
+
     // Template for creating a new instance of ObjectFactory
     // pos1: object factory name
     private final static String NEW_OBJECT_FACTORY_TEMPLATE = "private static final ObjectFactory %s = new ObjectFactory();";
@@ -36,6 +41,7 @@ public class ObjectFactoryCreator extends JavaIsoVisitor<ExecutionContext> {
             return classDecl;
         }
 
+        LOG.info("Adding " + objectFactoryType + " " + objectFactoryName + " as a static member to class " + classDecl);
         maybeAddImport(objectFactoryType);
         return addObjectFactory(classDecl);
     }

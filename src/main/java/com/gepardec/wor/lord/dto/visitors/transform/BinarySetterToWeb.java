@@ -9,17 +9,21 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.swing.*;
+import java.util.List;
 import java.util.Optional;
 
 public class BinarySetterToWeb extends JavaIsoVisitor<ExecutionContext> {
+    private static final Logger LOG = LoggerFactory.getLogger(BinarySetterToWeb.class);
 
     // JavaTemplate for constructing a setter invocation
     // pos1: instance name
     // pos2: setter name
     // pos3: argument
-    private static final JavaTemplate SETTER = LSTUtil.javaTemplateOf("#{}.#{}(#{});");
+    private static final JavaTemplate SETTER = LSTUtil.javaTemplateOf("#{}.#{}(#{})");
+    private static final JavaTemplate GETTER = LSTUtil.javaTemplateOf("#{}.#{}()");
 
     private final Accumulator accumulator;
 
@@ -45,7 +49,7 @@ public class BinarySetterToWeb extends JavaIsoVisitor<ExecutionContext> {
     private J.MethodInvocation changeToBinarySetter(J.MethodInvocation method) {
         Optional<Accessor> accessor = findWebAccessorForBinary(method);
         String instanceName = method.getSelect().toString();
-        String argument = getArgumentStatement(method);
+        Optional<String> argumentOpt = getArgumentStatements(method);
 
         if (accessor.isEmpty()) {
             return method;
@@ -53,6 +57,16 @@ public class BinarySetterToWeb extends JavaIsoVisitor<ExecutionContext> {
 
         doAfterVisit(new BinaryInitToWeb(instanceName, accessor.get(), accumulator));
 
+        J.MethodInvocation newSetter = (J.MethodInvocation) argumentOpt
+                .map(argument -> applySetter(method, accessor, instanceName, argument))
+                .orElse(applyGetter(method, accessor, instanceName));
+
+        LOG.info("Replacing " + method.printTrimmed(getCursor()) + " with " + newSetter.printTrimmed(getCursor()));
+        return newSetter;
+    }
+
+    @NotNull
+    private <J2> J2 applySetter(J.MethodInvocation method, Optional<Accessor> accessor, String instanceName, String argument) {
         return SETTER.apply(updateCursor(method),
                 method.getCoordinates().replace(),
                 instanceName,
@@ -61,20 +75,39 @@ public class BinarySetterToWeb extends JavaIsoVisitor<ExecutionContext> {
         );
     }
 
-    private String getArgumentStatement(J.MethodInvocation method) {
-        Optional<Accessor> accessor = findWebAccessorForBinary(method);
-        String argument = LSTUtil.getFirstArgument(method, getCursor());
+    @NotNull
+    private <J2> J2 applyGetter(J.MethodInvocation method, Optional<Accessor> accessor, String instanceName) {
+        return GETTER.apply(updateCursor(method),
+                method.getCoordinates().replace(),
+                instanceName,
+                generateWebDtoSetter(accessor.get(), method.getSimpleName()));
+    }
 
+    private Optional<String> getArgumentStatements(J.MethodInvocation method) {
+        Optional<Accessor> accessor = findWebAccessorForBinary(method);
+        List<Expression> arguments = method.getArguments();
+
+        if (arguments.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return arguments.stream()
+                .filter(argument -> !argument.printTrimmed(getCursor()).equals(""))
+                .map(argument -> getArgumentStatement(argument, accessor))
+                .reduce((arg1, arg2) -> arg1 + ", " + arg2);
+    }
+
+    private String getArgumentStatement(Expression argument, Optional<Accessor> accessor) {
+        String argumentString = argument.printTrimmed(getCursor());
         if (accessor.isEmpty()) {
-            return argument;
+            return argumentString;
         }
 
         if (!accessor.get().getType().contains("JAXBElement")) {
-            return argument;
+            return argumentString;
         }
 
-        return createObjectFactoryInitializer(argument, accessor.get());
-
+        return createObjectFactoryInitializer(argumentString, accessor.get());
     }
 
     private String capitalizeFirstLetter(String string) {
@@ -98,7 +131,7 @@ public class BinarySetterToWeb extends JavaIsoVisitor<ExecutionContext> {
     }
 
     private static boolean isNotOfBinaryDto(J.MethodInvocation method) {
-        return method.getSelect() != null && method.getSelect().getType() != null && !method.getSelect().getType().toString().contains("Dto");
+        return !(method.getSelect() != null && method.getSelect().getType() != null && method.getSelect().getType().toString().contains("Dto") && method.getSelect().getType().toString().startsWith("at.sozvers.stp.lgkk.gensvc"));
     }
 
     private String generateWebDtoSetter(Accessor accessor, String methodName) {
@@ -109,6 +142,13 @@ public class BinarySetterToWeb extends JavaIsoVisitor<ExecutionContext> {
             stringBuilder.insert(0, accessorIteration.getName() + "().");
             nextAccessor = accessorIteration.getParent();
         }
+
+        if (stringBuilder.length() == 0) {
+            if (getCursor().getParent().firstEnclosing(J.ForLoop.class) != null) {
+                methodName += "()";
+            }
+        }
+
         return stringBuilder.append(methodName).toString();
     }
 
@@ -123,14 +163,22 @@ public class BinarySetterToWeb extends JavaIsoVisitor<ExecutionContext> {
     }
 
     private Optional<Accessor> findWebAccessorForBinary(String methodName, String methodType) {
-        String typeWithoutDtoSuffix = methodType.substring(0, methodType.length() - 3);
+        String typeWithoutNested = cutNestedClassFromType(methodType);
+        String typeWithoutDtoSuffix = typeWithoutNested.substring(0, typeWithoutNested.length() - 3);
         String shortType = LSTUtil.shortNameOfFullyQualified(typeWithoutDtoSuffix);
         return accumulator.getServices().stream()
                 .flatMap(service -> service.getAccessors().stream())
                 .filter(accessor -> hasThatTypeContainsInTree(accessor, shortType))
-                .filter(accessor -> !accessor.getClazz().contains("StdReqHeader"))
+                .filter(accessor -> !accessor.getClazz().contains("StdReqHeader"))                      // Doesn't work on web
                 .filter(accessor -> methodName.contains(cutPrefixFromMethodName(accessor.getName())))
                 .findFirst();
+    }
+
+    @NotNull
+    private static String cutNestedClassFromType(String type) {
+        int nestedClassSeperator = '$';
+        int indexNestedClassSeperator = type.indexOf(nestedClassSeperator);
+        return indexNestedClassSeperator == -1 ? type : type.substring(0, indexNestedClassSeperator);
     }
 
     private boolean hasThatTypeContainsInTree(Accessor accessor, String string) {

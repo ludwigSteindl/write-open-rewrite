@@ -39,28 +39,22 @@ class JavaxOrmXmlToJakartaOrmXmlTest implements RewriteTest {
           xml(
                   """
                   <?xml version="1.0" encoding="UTF-8" ?>
-                  <entity-mappings xmlns="http://java.sun.com/xml/ns/persistence/orm" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  <entity-mappings 
+                      xmlns="http://java.sun.com/xml/ns/persistence/orm" 
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                       xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm http://java.sun.com/xml/ns/persistence/orm_2_0.xsd"
                       version="2.0">
-                      <description>SV Batch Framework JPA Entities</description>
-                  
-                      <!-- SV-Batch Entity Mapping -->
-                      <entity class="com.gepardec.JobDefinition" />
-                      <entity class="com.gepardec.JobType" />
-                  
+                      <description>Here mappings</description>
                   </entity-mappings>
                   """,
                   """
                   <?xml version="1.0" encoding="UTF-8" ?>
-                  <entity-mappings xmlns="https://jakarta.ee/xml/ns/persistence/orm" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  <entity-mappings 
+                      xmlns="https://jakarta.ee/xml/ns/persistence/orm" 
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                       xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence/orm https://jakarta.ee/xml/ns/persistence/orm/orm_3_0.xsd"
                       version="3.0">
-                      <description>SV Batch Framework JPA Entities</description>
-                  
-                      <!-- SV-Batch Entity Mapping -->
-                      <entity class="com.gepardec.JobDefinition" />
-                      <entity class="com.gepardec.JobType" />
-                  
+                      <description>Here mappings</description>
                   </entity-mappings>
                   """,
             sourceSpecs -> sourceSpecs.path("myapp-orm.xml")

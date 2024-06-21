@@ -27,12 +27,7 @@ import static org.openrewrite.xml.Assertions.xml;
 class JavaxOrmXmlToJakartaOrmXmlTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec
-          .parser(Parsers.createParserWithRuntimeClasspath())
-          .recipe(Environment.builder()
-            .scanRuntimeClasspath("com.gepardec.wor")
-            .build()
-            .activateRecipes("org.openrewrite.java.migrate.jakarta.JavaxOrmXmlToJakartaOrmXml"));
+        spec.recipeFromResources("org.openrewrite.java.migrate.jakarta.JavaxOrmXmlToJakartaOrmXml");
     }
 
     @DocumentExample

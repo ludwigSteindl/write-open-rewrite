@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class GenerateWebserviceHelper extends ScanningRecipe<Accumulator> {
+    private static final String FILE_PATH = "elgkk-util/src/main/resources/webserviceHelperContext.xml";
 
     @Override
     public String getDisplayName() {
@@ -40,6 +41,9 @@ public class GenerateWebserviceHelper extends ScanningRecipe<Accumulator> {
         List<Parser.Input> inputs = acc.getServicePackages().stream()
                 .map(CodeGenerator::createInput)
                 .collect(Collectors.toList());
+
+        inputs.add(SpringContextFileGenerator.createFile(FILE_PATH));
+
         return PlainTextParser
                 .builder()
                 .build()
@@ -47,4 +51,8 @@ public class GenerateWebserviceHelper extends ScanningRecipe<Accumulator> {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor(Accumulator acc) {
+            return super.getVisitor(acc);
+    }
 }

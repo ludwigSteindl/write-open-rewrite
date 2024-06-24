@@ -1,7 +1,7 @@
 package com.gepardec.wor.lord.dto.visitors.transform;
 
-import com.gepardec.wor.lord.dto.common.Accessor;
-import com.gepardec.wor.lord.dto.common.Accumulator;
+import com.gepardec.wor.lord.common.Accessor;
+import com.gepardec.wor.lord.common.Accumulator;
 import com.gepardec.wor.lord.util.LSTUtil;
 import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;
@@ -14,11 +14,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class BinaryInitToWeb extends JavaIsoVisitor<ExecutionContext> {
-    private String variableName;
-    private Accessor accessor;
+    private List<String> variableNames;
+    private Map<String, List<Accessor>> accessors;
     private Accumulator accumulator;
 
     private static final Logger LOG = LoggerFactory.getLogger(BinaryInitToWeb.class);
@@ -34,35 +36,69 @@ public class BinaryInitToWeb extends JavaIsoVisitor<ExecutionContext> {
     // pos3: value to set
     public static final String SETTER_TEMPLATE = "%s.%s(%s);";
 
-    private static final String OBJECT_FACTORY_NAME = "objectFactory";
+    private static final String OBJECT_FACTORY_NAME = "OBJECT_FACTORY";
 
 
-    public BinaryInitToWeb(String variableName, Accessor accessor, Accumulator accumulator) {
-        this.variableName = variableName;
-        this.accessor = accessor;
+    public BinaryInitToWeb(List<String> variableNames, Map<String, List<Accessor>> accessors, Accumulator accumulator) {
+        this.variableNames = variableNames;
+        this.accessors = accessors;
         this.accumulator = accumulator;
     }
 
+    public static @NotNull Optional<J.VariableDeclarations> getDeclarationOfVariable(List<Statement> statements, String variable) {
+        LOG.info("Search for variable <" + variable + "> in declarations: ");
+        LOG.info("__________");
+        var ret = LSTUtil.extractStatementsOfType(statements, J.VariableDeclarations.class)
+                .stream()
+                .peek(d -> LOG.info("Declaration | " + d))
+                .filter(variableDeclarations -> variableDeclarations.getVariables().get(0).getSimpleName().equals(variable))
+                .findFirst();
+        LOG.info("__________");
+        LOG.info(ret.map(variableDeclarations -> "Found " + variableDeclarations).orElse("Found nothing"));
+        LOG.info("\n\n");
+        return ret;
+    }
+
     @Override
-    public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-        method = super.visitMethodDeclaration(method, ctx);
-
-        boolean createsWebDto = false;
-        Optional<J.VariableDeclarations> dtoDeclarations = getDtoDeclaration(LSTUtil.getStatements(method));
-
-        if (dtoDeclarations.isEmpty()) {
-            return method;
+    public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
+        block = super.visitBlock(block, ctx);
+        String classType = getCursor().getParent().firstEnclosingOrThrow(J.ClassDeclaration.class).getType().toString();
+        if (classType.startsWith("at.sozvers.stp.lgkk.a02.laaamhsu")
+            || classType.startsWith("at.sozvers.stp.lgkk.gensvc")) {
+            return block;
         }
 
-        String dtoShortType = getShortTypeOfDeclarations(dtoDeclarations.get());
+        List<J.VariableDeclarations> dtoDeclarations = getDtoDeclaration(block.getStatements());
+
+        if (dtoDeclarations.isEmpty()) {
+            return block;
+        }
+
+        J.Block newBlock = block;
+        for (J.VariableDeclarations dtoDeclaration : dtoDeclarations) {
+            Optional<String> variableName = variableNames.stream()
+                    .filter(variable -> dtoDeclaration.getVariables().get(0).getName().toString().equals(variable))
+                    .findFirst();
+
+
+            if (variableName.isPresent()) {
+                newBlock = forVariable(newBlock, dtoDeclaration, variableName.get());
+            }
+        }
+        return newBlock;
+    }
+
+    private J.Block forVariable(J.Block block, J.VariableDeclarations dtoDeclarations, String variableName) {
+        boolean createsWebDto = false;
+        String dtoShortType = getShortTypeOfDeclarations(dtoDeclarations);
         String wsdlType = null;
         if (dtoShortType.contains("Dto")) {
             createsWebDto = true;
-            String binaryType = LSTUtil.getType(dtoDeclarations.get());
+            String binaryType = LSTUtil.getType(dtoDeclarations);
             Optional<String> wsdlTypeFromBinary = accumulator.lookupWsdlTypeFromBinary(binaryType);
 
             if (wsdlTypeFromBinary.isEmpty()) {
-                return method;
+                return block;
             }
 
             replaceBinaryImportWithWeb(binaryType, wsdlTypeFromBinary.get());
@@ -76,13 +112,13 @@ public class BinaryInitToWeb extends JavaIsoVisitor<ExecutionContext> {
         }
 
         if (wsdlType == null) {
-            return method;
+            return block;
         }
 
-        return updateMethodToInitializeWebDto(method, dtoDeclarations.get(), createsWebDto, wsdlType);
+        return updateBlockToInitializeWebDto(block, dtoDeclarations, createsWebDto, wsdlType, variableName);
     }
 
-    public Optional<String> createSetterStatement(Accessor accessor) {
+    public Optional<String> createSetterStatement(Accessor accessor, String variableName) {
         if (accessor.getParent().isEmpty()) {
             return Optional.empty();
         }
@@ -92,7 +128,8 @@ public class BinaryInitToWeb extends JavaIsoVisitor<ExecutionContext> {
         String accessorClassName = LSTUtil.shortNameOfFullyQualified(accessor.getClazz());
         String objectFactoryCreate = String.format("%s.create%s()", OBJECT_FACTORY_NAME, accessorClassName);
 
-        return Optional.of(String.format(SETTER_TEMPLATE, variableName, setter, objectFactoryCreate));
+        return Optional.of(String.format(SETTER_TEMPLATE, variableName, setter, objectFactoryCreate)
+        );
     }
 
     private void addObjectFactoryCreationToClass(Optional<String> wsdlTypeFromBinary) {
@@ -101,37 +138,49 @@ public class BinaryInitToWeb extends JavaIsoVisitor<ExecutionContext> {
                 LSTUtil.packageOf(wsdlTypeFromBinary.get())));
     }
 
-    private J.MethodDeclaration updateMethodToInitializeWebDto(J.MethodDeclaration method, J.VariableDeclarations dtoDeclarations, boolean createsWebDto, String newType) {
-        JavaCoordinates coordinates = getTemplateCoordinates(dtoDeclarations, createsWebDto);
+    private J.Block updateBlockToInitializeWebDto(J.Block block, J.VariableDeclarations dtoDeclarations, boolean createsWebDto, String newType, String variableName) {
+        List<Accessor> accessorsForVariable = accessors.get(variableName);
+        List<String> newSetters = accessorsForVariable
+                .stream()
+                .map(acc -> this.createSetterStatement(acc, variableName))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .distinct()
+                .collect(Collectors.toList());
 
-        Optional<String> lineToBeCreated = createSetterStatement(accessor);
-        String newSetter = lineToBeCreated
-                .filter(setter -> containsMethodInvocationOf(method, setter))
-                .orElse("");
+        String webDeclaration = getCreateDtoJavaTemplate(newType, variableName);
 
+        JavaCoordinates coordinates = getTemplateCoordinates(dtoDeclarations, true);
+        J.Block newBlock =  JavaTemplate
+                .builder(webDeclaration)
+                .build()
+                .apply(updateCursor(block), coordinates);
 
-        Optional<JavaTemplate> initStatements = getCreateDtoJavaTemplate(newType, newSetter, createsWebDto);
-        initStatements
-                .ifPresent(statements ->  LOG.info("Changing Dto init " +
-                    method.printTrimmed(getCursor()) +
-                    "to: " + statements.getCode()));
-        return initStatements
-                .map(javaTemplate -> javaTemplate.apply(updateCursor(method), coordinates))
-                .map(J.MethodDeclaration.class::cast)
-                .orElse(method);
+        J.VariableDeclarations newDeclaration = getDeclarationOfVariable(newBlock.getStatements(), variableName).get();
+
+        JavaCoordinates newCoordinates = getTemplateCoordinates(newDeclaration, false);
+        for (String webSetter : newSetters) {
+            if (!containsMethodInvocationOf(newBlock, webSetter))
+                newBlock = JavaTemplate
+                    .builder(webSetter)
+                    .build()
+                    .apply(updateCursor(newBlock), newCoordinates);
+        }
+
+        return newBlock;
     }
 
-    private boolean containsMethodInvocationOf(J.MethodDeclaration method, String newSetter) {
-        return LSTUtil.getStatements(method)
+    private boolean containsMethodInvocationOf(J.Block block, String newSetter) {
+        return block.getStatements()
                 .stream()
                 .map(statement -> statement.printTrimmed(getCursor()))
                 .map(s -> s + ";")
-                .anyMatch(line -> line.equals(newSetter));
+                .anyMatch(line -> line.replace("\n", "").equals(newSetter));
     }
 
-    private static @NotNull JavaCoordinates getTemplateCoordinates(J.VariableDeclarations dtoDeclarations, boolean createsWebDto) {
+    private static @NotNull JavaCoordinates getTemplateCoordinates(J.VariableDeclarations dtoDeclarations, boolean replace) {
         CoordinateBuilder.VariableDeclarations coordinateBuilder = dtoDeclarations.getCoordinates();
-        return createsWebDto ? coordinateBuilder.replace() : coordinateBuilder.after();
+        return replace ?coordinateBuilder.replace() : coordinateBuilder.after();
     }
 
 
@@ -140,8 +189,12 @@ public class BinaryInitToWeb extends JavaIsoVisitor<ExecutionContext> {
         return LSTUtil.shortNameOfFullyQualified(dtoType);
     }
 
-    private @NotNull Optional<J.VariableDeclarations> getDtoDeclaration(List<Statement> statements) {
-        return LSTUtil.getDeclarationOfVariable(statements, variableName);
+    private @NotNull List<J.VariableDeclarations> getDtoDeclaration(List<Statement> statements) {
+        return variableNames.stream()
+                .map(variable -> getDeclarationOfVariable(statements, variable))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
     }
 
     private void replaceBinaryImportWithWeb(String binaryType, String wsdlType) {
@@ -153,23 +206,7 @@ public class BinaryInitToWeb extends JavaIsoVisitor<ExecutionContext> {
         return getter.substring(getter.startsWith("is") ? 2 : 3);
     }
 
-    private Optional<JavaTemplate> getCreateDtoJavaTemplate(String wsdlType, String newSetter, boolean createsWebDto) {
-        StringBuilder template = new StringBuilder();
-
-        if (createsWebDto) {
-            template.append(String.format(NEW_WEB_DTO, wsdlType, variableName, wsdlType));
-        }
-        if (accessor != null)
-            template
-                    .append(createsWebDto ? "\n" : "")
-                    .append(newSetter);
-
-        if (template.length() == 0) {
-            return Optional.empty();
-        }
-
-        JavaTemplate resultingTemplate = LSTUtil.javaTemplateOf(template.toString(), wsdlType);
-        return Optional.of(resultingTemplate);
+    private String getCreateDtoJavaTemplate(String wsdlType, String variableName) {
+        return String.format(NEW_WEB_DTO, wsdlType, variableName, wsdlType);
     }
-
 }

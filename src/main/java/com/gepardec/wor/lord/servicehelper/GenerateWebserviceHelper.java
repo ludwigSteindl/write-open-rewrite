@@ -1,18 +1,75 @@
-package com.gepardec.wor.lord.webservicehelper;
+package com.gepardec.wor.lord.servicehelper;
+
 
 import com.gepardec.wor.lord.util.LSTUtil;
-import org.openrewrite.Parser;
+import org.openrewrite.*;
+import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.text.PlainTextParser;
 
 import java.nio.file.Path;
-import java.util.LinkedList;
+import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class CodeGenerator {
-    private static final String DIR = "elgkk-util/src/main/java/at/sozvers/stp/lgkk/webservice/helper/";
+public class GenerateWebserviceHelper extends ScanningRecipe<Accumulator> {
 
-    private static final String CODE_TEMPLATE = """
+    @Override
+    public String getDisplayName() {
+        return "Append to release notes";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Adds the specified line to RELEASE.md.";
+    }
+
+    @Override
+    public Accumulator getInitialValue(ExecutionContext ctx) {
+        return new Accumulator();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getScanner(Accumulator acc) {
+        return new ServiceSearch(acc);
+    }
+
+    @Override
+    public Collection<? extends SourceFile> generate(Accumulator acc, ExecutionContext ctx) {
+        List<Parser.Input> inputs = acc.getServicePackages().stream()
+                .map(GenerateWebserviceHelper::createInput)
+                .collect(Collectors.toList());
+        return PlainTextParser
+                .builder()
+                .build()
+                .parseInputs(inputs, Path.of(""), ctx)
+                .collect(Collectors.toList());
+    }
+
+    private static Parser.Input createInput(String packageName) {
+        String dir = "elgkk-util/src/main/java/at/sozvers/stp/lgkk/webservice/helper/";
+        String lastSubPackage = LSTUtil.shortNameOfFullyQualified(packageName);
+        String className = lastSubPackage.substring(0, 1).toUpperCase() + lastSubPackage.substring(1);
+
+        Path path = Path.of(dir + lastSubPackage);
+        String wsHelperCode = generateWebserviceHelper(lastSubPackage, className);
+        return Parser.Input.fromString(path, wsHelperCode);
+    }
+
+    private static String generateWebserviceHelper(String packageName, String serviceClassName) {
+        return String.format(WEBSERVICE_HELPER_TEMPLATE,
+                packageName,
+                serviceClassName,
+                serviceClassName,
+                serviceClassName,
+                serviceClassName,
+                serviceClassName,
+                serviceClassName
+                );
+    }
+
+    private static final String WEBSERVICE_HELPER_TEMPLATE = """
             package at.sozvers.stp.lgkk.webservice.helper;
             
             import at.sozvers.stp.lgkk.a02.%s.*;
@@ -92,32 +149,11 @@ public class CodeGenerator {
             
                 private ExecuteService castToExecuteService(Object object) {
                     if (!(object instanceof ExecuteService)) {
-                        throw new IllegalArgumentException("Das uebergebene Objekt ist nicht vom Typ " + ExecuteService.class.getName());
+                        throw new IllegalArgumentException("Das übergebene Objekt ist nicht vom Typ " + ExecuteService.class.getName());
                     }
                     return (ExecuteService) object;
                 }
             }
             """;
-
-    static Parser.Input createInput(String packageName) {
-        String dir = "elgkk-util/src/main/java/at/sozvers/stp/lgkk/webservice/helper/";
-        String lastSubPackage = LSTUtil.shortNameOfFullyQualified(packageName);
-        String className = Accumulator.getServiceClass(packageName);
-
-        Path path = Path.of(dir + lastSubPackage);
-        String wsHelperCode = generateWebserviceHelper(lastSubPackage, className);
-        return Parser.Input.fromString(path, wsHelperCode);
-    }
-
-    private static String generateWebserviceHelper(String packageName, String serviceClassName) {
-        List<String> imports = new LinkedList<>(List.of(packageName));
-        List<String> serviceClassNames = Stream.generate(() -> packageName)
-                .limit(6)
-                .collect(Collectors.toList());
-        imports.addAll(serviceClassNames);
-        return String.format(CODE_TEMPLATE,
-                imports.toArray()
-        );
-    }
 
 }

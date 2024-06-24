@@ -1,6 +1,6 @@
 package com.gepardec.wor.lord.call.ifs;
 
-import com.gepardec.wor.lord.util.Parsers;
+import com.gepardec.wor.lord.util.ParserUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
@@ -22,20 +22,20 @@ public class BinaryProxyToWebVisitor extends JavaIsoVisitor<ExecutionContext> {
             .build();
 
     private final static String IF_TEMPLATE = """
-                            if(useWeb) {
-                                %s
-                            } else {
-                                #{any()};
-                            }
-                            """;
+            if(useWeb) {
+                %s
+            } else {
+                #{any()};
+            }
+            """;
     private final static JavaTemplate IF_INITIALIZATION = JavaTemplate
             .builder(String.format(IF_TEMPLATE, "AuMhHostInfoResponseDto #{} = callSvcWeb(#{});"))
-            .javaParser(Parsers.createParserWithRuntimeClasspath())
+            .javaParser(ParserUtil.createParserWithRuntimeClasspath())
             .contextSensitive()
             .build();
     private final static JavaTemplate IF_RETURN = JavaTemplate
             .builder(String.format(IF_TEMPLATE, "return callSvcWeb(#{});"))
-            .javaParser(Parsers.createParserWithRuntimeClasspath())
+            .javaParser(ParserUtil.createParserWithRuntimeClasspath())
             .contextSensitive()
             .build();
     private final static JavaTemplate IF_ASSIGNMENT = JavaTemplate

@@ -1,4 +1,4 @@
-package com.gepardec.wor.lord.dto.common;
+package com.gepardec.wor.lord.common;
 
 import com.gepardec.wor.lord.util.LSTUtil;
 
@@ -7,7 +7,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Wsdl2JavaService {
@@ -35,6 +34,14 @@ public class Wsdl2JavaService {
         this.setRequestTypes(requestTypes);
         this.setResponseTypes(responseTypes);
         this.accessors = new LinkedList<>();
+    }
+
+    public List<String> getRequestTypes() {
+        return requestTypes;
+    }
+
+    public List<String> getResponseTypes() {
+        return responseTypes;
     }
 
     public void structureAccessors() {
@@ -103,14 +110,5 @@ public class Wsdl2JavaService {
 
     public String getServiceAlias() {
         return serviceAlias;
-    }
-
-    @Override
-    public String toString() {
-        return "Wsdl2JavaService{" +
-                "serviceAlias='" + serviceAlias + '\'' +
-                ", requestTypes=" + requestTypes +
-                ", responseTypes=" + responseTypes +
-                '}';
     }
 }

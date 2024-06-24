@@ -3,7 +3,6 @@ package com.gepardec.wor.lord.dto;
 import com.gepardec.wor.helpers.SourceFileContents;
 import com.gepardec.wor.lord.call.ternaries.BinaryProxyToWebTernaryAndClassTest;
 import com.gepardec.wor.lord.util.ParserUtil;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
@@ -15,14 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import static org.openrewrite.java.Assertions.java;
 
-// 23.05.2024 Simon
-// WSDLTypesSearch verwendete JavaType um sich die Return Types auszulesen - Tests funktionieren.
-// Bei Nutzung des Rezepts bei echtem eLGK Code schlugen deswegen die Tests fehl
-// (JavaTypes von libraries sind unknown).
-// Das Rezept wurde angepasst und verwendet jetzt J.MethodDeclaration.getReturnTypeExpression().
-// Im Testsetting sind diese Statements null. (in echt aber nicht?)
-// Ursache unklar
-@Disabled("Tests are failing because recipe now supports the real code")
 public class BinaryDtoToWebTest implements RewriteTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(BinaryProxyToWebTernaryAndClassTest.class);

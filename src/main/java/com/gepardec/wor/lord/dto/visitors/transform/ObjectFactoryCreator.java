@@ -3,6 +3,7 @@ package com.gepardec.wor.lord.dto.visitors.transform;
 import com.gepardec.wor.lord.util.LSTUtil;
 import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.java.AddImport;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.J;
@@ -24,7 +25,6 @@ public class ObjectFactoryCreator extends JavaIsoVisitor<ExecutionContext> {
     private String objectFactoryType;
     private JavaTemplate newObjectFactory;
 
-
     public ObjectFactoryCreator(String objectFactoryName, String objectFactoryPackage) {
         this.objectFactoryName = objectFactoryName;
         this.objectFactoryType = objectFactoryPackage + OBJECT_FACTORY_TYPE_SUFFIX;
@@ -37,16 +37,22 @@ public class ObjectFactoryCreator extends JavaIsoVisitor<ExecutionContext> {
     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext context) {
         classDecl = super.visitClassDeclaration(classDecl, context);
 
+        if (classDecl.getName().toString()
+                .startsWith("at.sozvers.stp.lgkk.a02.laaamhsu")) {
+            return classDecl;
+        }
+
         if (hasObjectFactory(classDecl)) {
             return classDecl;
         }
 
         LOG.info("Adding " + objectFactoryType + " " + objectFactoryName + " as a static member to class " + classDecl);
-        maybeAddImport(objectFactoryType);
+        doAfterVisit(new AddImport<>(objectFactoryType, null, false));
         return addObjectFactory(classDecl);
     }
 
     private J.@NotNull ClassDeclaration addObjectFactory(J.ClassDeclaration classDecl) {
+        registerObjectFactoryCreation(classDecl);
         return newObjectFactory.apply(
                 updateCursor(classDecl),
                 classDecl.getBody().getCoordinates().firstStatement()
@@ -54,6 +60,23 @@ public class ObjectFactoryCreator extends JavaIsoVisitor<ExecutionContext> {
     }
 
     private boolean hasObjectFactory(J.ClassDeclaration classDecl) {
+        return hasObjectFactoryWithKnownType(classDecl) || hasObjectFactoryWithUnknkownType(classDecl);
+    }
+
+    private void registerObjectFactoryCreation(J.ClassDeclaration classDecl) {
+        ObjectFactoryCreations
+                .getInstance()
+                .addObjectFactoryCreation(classDecl.getName().toString(), objectFactoryType);
+    }
+
+    private boolean hasObjectFactoryWithUnknkownType(J.ClassDeclaration classDecl) {
+        return ObjectFactoryCreations
+                .getInstance()
+                .getObjectFactoryCreations(classDecl.getName().toString())
+                .contains(objectFactoryType);
+    }
+
+    private boolean hasObjectFactoryWithKnownType(J.ClassDeclaration classDecl) {
         return getVariableDeclarations(classDecl)
                 .stream()
                 .filter(variableDeclarations -> LSTUtil.getType(variableDeclarations).equals(objectFactoryType))

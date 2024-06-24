@@ -1,21 +1,25 @@
 package com.gepardec.wor.lord.dto.visitors.transform;
 
-import com.gepardec.wor.lord.dto.common.Accessor;
-import com.gepardec.wor.lord.dto.common.Accumulator;
+import com.gepardec.wor.lord.common.Accessor;
+import com.gepardec.wor.lord.common.Accumulator;
+import com.gepardec.wor.lord.util.JAXBElementUtil;
 import com.gepardec.wor.lord.util.LSTUtil;
+import com.gepardec.wor.lord.util.XmlGregorianCalendarUtil;
 import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class BinarySetterToWeb extends JavaIsoVisitor<ExecutionContext> {
+    private List<String> variableNames = new ArrayList<>();
+    private Map<String, List<Accessor>> accessors = new HashMap<>();
     private static final Logger LOG = LoggerFactory.getLogger(BinarySetterToWeb.class);
 
     // JavaTemplate for constructing a setter invocation
@@ -32,7 +36,19 @@ public class BinarySetterToWeb extends JavaIsoVisitor<ExecutionContext> {
     }
 
     @Override
+    public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
+        cu = super.visitCompilationUnit(cu, executionContext);
+        doAfterVisit(new BinaryInitToWeb(variableNames, accessors, accumulator));
+        return cu;
+    }
+
+    @Override
     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+        String classType = getCursor().getParent().firstEnclosingOrThrow(J.ClassDeclaration.class).getType().toString();
+        if (classType.startsWith("at.sozvers.stp.lgkk.a02.laaamhsu")
+                || classType.startsWith("at.sozvers.stp.lgkk.gensvc")) {
+            return method;
+        }
         method = super.visitMethodInvocation(method, ctx);
 
         if (isNotOfBinaryDto(method)) {
@@ -55,7 +71,13 @@ public class BinarySetterToWeb extends JavaIsoVisitor<ExecutionContext> {
             return method;
         }
 
-        doAfterVisit(new BinaryInitToWeb(instanceName, accessor.get(), accumulator));
+        if (!variableNames.contains(instanceName)) {
+            variableNames.add(instanceName);
+        }
+        if (!accessors.containsKey(instanceName)) {
+            accessors.put(instanceName, new ArrayList<>());
+        }
+        accessors.get(instanceName).add(accessor.get());
 
         J.MethodInvocation newSetter = (J.MethodInvocation) argumentOpt
                 .map(argument -> applySetter(method, accessor, instanceName, argument))
@@ -91,10 +113,38 @@ public class BinarySetterToWeb extends JavaIsoVisitor<ExecutionContext> {
             return Optional.empty();
         }
 
-        return arguments.stream()
-                .filter(argument -> !argument.printTrimmed(getCursor()).equals(""))
-                .map(argument -> getArgumentStatement(argument, accessor))
-                .reduce((arg1, arg2) -> arg1 + ", " + arg2);
+        Expression argument = arguments.get(arguments.size() < 2 ? 0 : 1);
+
+        if (argument.printTrimmed(getCursor()).equals("")) {
+            return Optional.empty();
+        }
+
+        return Optional.of(getArgumentStatement(argument, accessor));
+    }
+
+    private boolean isUnknown(Expression argument) {
+        return argument.getType() == JavaType.Unknown.getInstance();
+    }
+
+    private boolean isOfAccessorType(Expression argument, Optional<Accessor> accessor) {
+        if (accessor.isEmpty()) {
+            return false;
+        }
+        String accessorType = accessor.get().getType();
+
+        accessorType = JAXBElementUtil.unwrapJaxbElement(accessorType);
+        accessorType = xmlGregorianCalendarToCalendar(accessorType);
+
+        if (argument.getType() == null) {
+            return false;
+        }
+
+        String argumentTypeShort = LSTUtil.shortNameOfFullyQualified(argument.getType().toString());
+        return accessorType.equals(argumentTypeShort);
+    }
+
+    private String xmlGregorianCalendarToCalendar(String accessorType) {
+        return accessorType.replace("XMLGregorianCalendar", "Calendar");
     }
 
     private String getArgumentStatement(Expression argument, Optional<Accessor> accessor) {
@@ -103,12 +153,60 @@ public class BinarySetterToWeb extends JavaIsoVisitor<ExecutionContext> {
             return argumentString;
         }
 
-        if (!accessor.get().getType().contains("JAXBElement")) {
+        if (argument.getType() != null) {
+            argumentString = convertTypes(argument.getType().toString(), accessor.get().getType(), argumentString);
+        }
+
+        if (argument.getType() != null && XmlGregorianCalendarUtil.isCalendar(argument.getType().toString())) {
+            argumentString = XmlGregorianCalendarUtil.convertToXmlGregorian(argumentString);
+            maybeAddImport("at.sozvers.stp.lgkk.util.DatumsUtil", false);
+        }
+
+        if (!JAXBElementUtil.isJaxbElement(accessor.get().getType())) {
             return argumentString;
         }
 
         return createObjectFactoryInitializer(argumentString, accessor.get());
     }
+
+    private String convertTypes(String argumentType, String expectedType, String argumentString) {
+        // String - int ?
+        if (JAXBElementUtil.isJaxbElement(expectedType)) {
+            expectedType = JAXBElementUtil.getJaxbElementTypeParameter(expectedType);
+        }
+        expectedType = expectedType.toLowerCase();
+
+        if (argumentType.equals(expectedType)) {
+            return argumentString;
+        }
+
+        switch (expectedType) {
+            case "long":
+                return convertToLong(argumentString, argumentType);
+            case "int":
+            case "integer":
+                return convertToInt(argumentString, argumentType);
+        }
+        return argumentString;
+    }
+
+    private String convertToLong(String argumentString, String argumentType) {
+        final List<String> allowedTypes = List.of("double", "int", "integer");
+        return allowedTypes.contains(argumentType) ? castTo(argumentString, "long") : argumentString;
+    }
+
+    private String convertToInt(String argumentString, String argumentType) {
+        final List<String> allowedTypes = List.of("double", "long");
+        return allowedTypes.contains(argumentType) ? castTo(argumentString, "int") : argumentString;
+    }
+
+    private String castTo(String argumentString, String targetType) {
+        if (argumentString.contains(" ")) {
+            argumentString = "(" + argumentString + ")";
+        }
+        return String.format("(%s) %s", targetType, argumentString);
+    }
+
 
     private String capitalizeFirstLetter(String string) {
         return string.substring(0, 1).toUpperCase() + string.substring(1);
@@ -119,8 +217,8 @@ public class BinarySetterToWeb extends JavaIsoVisitor<ExecutionContext> {
         String parentPart =  accessor.getParent()
                 .map(Accessor::getType)
                 .map(LSTUtil::shortNameOfFullyQualified)
-                .orElse("");
-        return String.format("objectFactory.create%s%s(%s)", parentPart, fieldName, argument);
+                .orElse(accessor.getClazz());
+        return String.format("OBJECT_FACTORY.create%s%s(%s)", parentPart, fieldName, argument);
 
     }
 
@@ -131,7 +229,12 @@ public class BinarySetterToWeb extends JavaIsoVisitor<ExecutionContext> {
     }
 
     private static boolean isNotOfBinaryDto(J.MethodInvocation method) {
-        return !(method.getSelect() != null && method.getSelect().getType() != null && method.getSelect().getType().toString().contains("Dto") && method.getSelect().getType().toString().startsWith("at.sozvers.stp.lgkk.gensvc"));
+        return !(
+                method.getSelect() != null
+                && method.getSelect().getType() != null
+                && method.getSelect().getType().toString().contains("Dto")
+                && method.getSelect().getType().toString().startsWith("at.sozvers.stp.lgkk.gensvc")
+        );
     }
 
     private String generateWebDtoSetter(Accessor accessor, String methodName) {
@@ -149,7 +252,33 @@ public class BinarySetterToWeb extends JavaIsoVisitor<ExecutionContext> {
             }
         }
 
-        return stringBuilder.append(methodName).toString();
+        stringBuilder.append(methodName);
+
+        if (shouldCreateJAXBElementGet(accessor, methodName)) {
+            stringBuilder.append("().getValue()");
+        }
+
+        if (shouldConvertToCalendar(accessor, methodName)) {
+            stringBuilder.append(".toGregorianCalendar()");
+        }
+
+        return stringBuilder.toString();
+    }
+
+    private boolean shouldConvertToCalendar(Accessor accessor, String methodName) {
+        String type = accessor.getType();
+        if (JAXBElementUtil.isJaxbElement(type)) {
+            type = JAXBElementUtil.getJaxbElementTypeParameter(accessor.getType());
+        }
+        return isGetter(methodName) && type.equals("XMLGregorianCalendar");
+    }
+
+    private static boolean shouldCreateJAXBElementGet(Accessor accessor, String methodName) {
+        return isGetter(methodName) && accessor.getType().startsWith("JAXBElement");
+    }
+
+    private static boolean isGetter(String methodName) {
+        return methodName.startsWith("get") || methodName.startsWith("is");
     }
 
     private String cutPrefixFromMethodName(String methodName) {

@@ -211,9 +211,9 @@
 
     <distributionManagement>
         <repository>
-        <id>github</id>
-        <name>GitHub Maven Packages</name>
-        <url>https://maven.pkg.github.com/Gepardec/write-open-rewrite</url>
+            <id>github</id>
+            <name>GitHub Maven Packages</name>
+            <url>https://maven.pkg.github.com/Gepardec/write-open-rewrite</url>
         </repository>
     </distributionManagement>
 </project>

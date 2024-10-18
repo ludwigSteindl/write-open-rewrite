@@ -55,3 +55,16 @@ recipeList:
       oldGroupId: com.mysema.querydsl
       oldArtifactId: querydsl-core
       newGroupId: com.querydsl
+
+---
+# Recipe will change the current Log4j dependency version to the latest release version
+type: specs.openrewrite.org/v1beta/recipe
+name: com.gepardec.update.log4j
+displayName: Upgrade Log4j dependency version
+description: Upgrades the Log4j dependency to the latest release version
+recipeList:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: log4j
+      artifactId: log4j
+      newVersion: latest.release
+      overrideManagedVersion: true

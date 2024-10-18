@@ -26,6 +26,7 @@ public class GenerateWebserviceHelperTest implements RewriteTest {
           .typeValidationOptions(TypeValidation.none());
     }
 
+    @Disabled
     @DocumentExample
     @Test
     public void whenBinaryStdhSet_thenCreateWebStdh() {

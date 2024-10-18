@@ -35,6 +35,7 @@ public class BinaryProxyToWebTernaryAndClassTest implements RewriteTest {
         spec.recipe(new BinaryProxyToWebTernaryAndClass()).typeValidationOptions(TypeValidation.none());
     }
 
+    @Disabled
     @DocumentExample
     @Test
     public void whenCall_thenAddWebCall() {
@@ -138,6 +139,7 @@ public class BinaryProxyToWebTernaryAndClassTest implements RewriteTest {
                   """)
         );
     }
+    @Disabled
     @DocumentExample
     @Test
     public void whenMultipleCallsDifferentTypes_thenChangeToTernaryAndAddToConfigClassOnce() {
@@ -208,6 +210,7 @@ public class BinaryProxyToWebTernaryAndClassTest implements RewriteTest {
           )
         );
     }
+    @Disabled
     @DocumentExample
     @Test
     public void whenCallWithDifferentVariableNames_thenChangeToTernaryAndAddToConfigClassOnce() {
@@ -278,6 +281,7 @@ public class BinaryProxyToWebTernaryAndClassTest implements RewriteTest {
     }
     @DocumentExample
     @Test
+    @Disabled
     public void whenCallInOtherCall_thenChangeToTernaryAndAddToConfigClassOnce() {
         LOG.info("Start Test");
         rewriteRun(

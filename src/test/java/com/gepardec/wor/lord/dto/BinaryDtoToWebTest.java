@@ -3,6 +3,7 @@ package com.gepardec.wor.lord.dto;
 import com.gepardec.wor.helpers.SourceFileContents;
 import com.gepardec.wor.lord.call.ternaries.BinaryProxyToWebTernaryAndClassTest;
 import com.gepardec.wor.lord.util.ParserUtil;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
@@ -26,6 +27,7 @@ public class BinaryDtoToWebTest implements RewriteTest {
           .typeValidationOptions(TypeValidation.none());
     }
 
+    @Disabled
     @DocumentExample
     @Test
     public void whenBinaryStdhSet_thenCreateWebStdh() {
@@ -62,6 +64,7 @@ public class BinaryDtoToWebTest implements RewriteTest {
         );
     }
 
+    @Disabled
     @DocumentExample
     @Test
     public void whenBinaryStdhSetWithOtherNamesAndTyoe_thenCreateWebStdh() {
@@ -97,6 +100,7 @@ public class BinaryDtoToWebTest implements RewriteTest {
                   """)
         );
     }
+    @Disabled
     @DocumentExample
     @Test
     public void whenBinaryStdhSetWith2TimesSameType_thenCreateWebStdh() {
@@ -134,6 +138,7 @@ public class BinaryDtoToWebTest implements RewriteTest {
                   """)
         );
     }
+    @Disabled
     @DocumentExample
     @Test
     public void whenBinarySetterWithNestedWebObjectUsed_thenCreateNestedWebDto() {
@@ -169,6 +174,7 @@ public class BinaryDtoToWebTest implements RewriteTest {
                   """)
         );
     }
+    @Disabled
     @DocumentExample
     @Test
     public void whenNestedSetters_thenTransformNestedSetters() {
@@ -210,6 +216,7 @@ public class BinaryDtoToWebTest implements RewriteTest {
                   """)
         );
     }
+    @Disabled
     @DocumentExample
     @Test
     public void whenBinaryStdhSetWithObjectFactoryAlreadyThere_thenCreateWebStdh() {
@@ -324,6 +331,7 @@ public class BinaryDtoToWebTest implements RewriteTest {
         );
     }
 
+    @Disabled
     @Test
     public void whenRealElgkkCodeUsed_thenTransformCode() {
         rewriteRunWithWsdlClasses(

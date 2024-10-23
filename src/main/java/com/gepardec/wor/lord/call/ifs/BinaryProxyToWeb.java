@@ -15,14 +15,10 @@
  */
 package com.gepardec.wor.lord.call.ifs;
 
-import lombok.EqualsAndHashCode;
-import lombok.Value;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 
-@Value
-@EqualsAndHashCode(callSuper = false)
 public class BinaryProxyToWeb extends Recipe {
     @Override
     public String getDisplayName() {

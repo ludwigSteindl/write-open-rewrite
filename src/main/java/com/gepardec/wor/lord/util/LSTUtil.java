@@ -38,6 +38,10 @@ public class LSTUtil {
                 .collect(Collectors.toList());
     }
 
+    public static String getPackageName(Cursor cursor) {
+        return cursor.firstEnclosingOrThrow(J.CompilationUnit.class).getPackageDeclaration().getPackageName();
+    }
+
     public static <T extends J> List<T> extractStatementsOfTypeRecursively(List<Statement> statements, Class<T> type) {
         List<T> statementsOfType = extractStatementsOfType(statements, type);
 

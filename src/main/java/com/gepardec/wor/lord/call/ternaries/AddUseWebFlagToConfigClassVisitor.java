@@ -6,7 +6,7 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.J;
 
-public class BinaryProxyToWebConfigClassVisitor extends JavaIsoVisitor<ExecutionContext> {
+public class AddUseWebFlagToConfigClassVisitor extends JavaIsoVisitor<ExecutionContext> {
     private static final String CLASS_NAME = "ElgkkPropertiesUtil";
     private static final String USE_WEB_GETTER_NAME = "isUseWeb";
     private static final JavaTemplate USE_WEB_GETTER = JavaTemplate

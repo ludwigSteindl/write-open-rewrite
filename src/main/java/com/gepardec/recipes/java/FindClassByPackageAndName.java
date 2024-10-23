@@ -1,4 +1,4 @@
-package com.gepardec.wor.lord;
+package com.gepardec.recipes.java;
 
 import com.gepardec.wor.lord.util.LSTUtil;
 import org.openrewrite.*;
@@ -9,14 +9,10 @@ import org.openrewrite.marker.SearchResult;
 public class FindClassByPackageAndName extends Recipe {
 
     @Option
-    private String className;
+    private String classFqn;
 
-    @Option
-    private String packageName;
-
-    public FindClassByPackageAndName(String className, String packageName) {
-        this.className = className;
-        this.packageName = packageName;
+    public FindClassByPackageAndName(String classFqn) {
+        this.classFqn = classFqn;
     }
 
     @Override
@@ -34,15 +30,9 @@ public class FindClassByPackageAndName extends Recipe {
         return new JavaIsoVisitor<>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
-                String declaredPackage = LSTUtil.getPackageName(getCursor());
-
-                return isSearchedClass(declaredPackage, classDecl.getSimpleName()) ?
+                return classDecl.getType().getFullyQualifiedName().equals(classFqn) ?
                         SearchResult.found(classDecl) : classDecl;
             }
         };
-    }
-
-    private boolean isSearchedClass(String packageName, String className) {
-        return packageName.equals(this.packageName) && className.equals(this.className);
     }
 }

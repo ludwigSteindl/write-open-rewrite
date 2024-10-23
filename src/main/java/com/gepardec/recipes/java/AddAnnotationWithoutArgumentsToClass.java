@@ -1,22 +1,13 @@
-package com.gepardec.wor.lord.wsannotation;
+package com.gepardec.recipes.java;
 
-import com.gepardec.wor.lord.FindClassByPackageAndName;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.service.AnnotationService;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.NameTree;
-import org.openrewrite.java.tree.Space;
-import org.openrewrite.java.tree.TypeUtils;
-import org.openrewrite.marker.Markers;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.util.Comparator;
 
 public class AddAnnotationWithoutArgumentsToClass extends Recipe {
@@ -31,10 +22,7 @@ public class AddAnnotationWithoutArgumentsToClass extends Recipe {
     }
 
     @Option
-    private final String className;
-
-    @Option
-    private final String classPackage;
+    private final String classFqn;
 
     @Option
     private final String annotationFqn;
@@ -50,9 +38,8 @@ public class AddAnnotationWithoutArgumentsToClass extends Recipe {
 
 
 
-    public AddAnnotationWithoutArgumentsToClass(String className, String classPackage, String annotationFqn, @Nullable Boolean repeatable) {
-        this.className = className;
-        this.classPackage = classPackage;
+    public AddAnnotationWithoutArgumentsToClass(String classFqn, String annotationFqn, @Nullable Boolean repeatable) {
+        this.classFqn = classFqn;
         this.annotationFqn = annotationFqn;
         this.annotationSimpleName = annotationFqn == null ? null : annotationFqn.substring(annotationFqn.lastIndexOf('.') + 1);
         this.repeatable = repeatable != null && repeatable;
@@ -69,7 +56,7 @@ public class AddAnnotationWithoutArgumentsToClass extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(
-                new FindClassByPackageAndName(className, classPackage),
+                new FindClassByPackageAndName(classFqn),
                 new JavaIsoVisitor<>() {
                     @Override
                     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {

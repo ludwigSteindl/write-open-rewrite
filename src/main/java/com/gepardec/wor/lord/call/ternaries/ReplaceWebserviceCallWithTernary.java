@@ -2,17 +2,13 @@ package com.gepardec.wor.lord.call.ternaries;
 
 import com.gepardec.wor.lord.util.LSTUtil;
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 
-import java.util.Optional;
-
-public class ReplaceCallRecipe extends Recipe {
+public class ReplaceWebserviceCallWithTernary extends Recipe {
     private static final String GENSVC_PACKAGE = "at.sozvers.stp.lgkk.gensvc";
 
     private static final String SERVICE_HELPER_TEMPLATE = "%sServiceHelper";

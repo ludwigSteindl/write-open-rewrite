@@ -22,6 +22,7 @@ tags:
   - jakarta
 recipeList:
   - org.openrewrite.java.migrate.jakarta.JavaxOrmXmlToJakartaOrmXml
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.migrate.jakarta.JavaxOrmXmlToJakartaOrmXml

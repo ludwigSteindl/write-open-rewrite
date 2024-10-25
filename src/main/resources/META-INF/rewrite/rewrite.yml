@@ -55,3 +55,19 @@ recipeList:
       oldGroupId: com.mysema.querydsl
       oldArtifactId: querydsl-core
       newGroupId: com.querydsl
+
+---
+# Recipe will change the current Log4j dependency version to the latest release version
+type: specs.openrewrite.org/v1beta/recipe
+name: com.gepardec.update.Log4j
+displayName: Upgrade Log4j dependency version
+description: Upgrades the Log4j dependency to the latest release version
+recipeList:
+  - org.openrewrite.java.logging.log4j.Log4j1ToLog4j2
+
+      #Version 1
+      #newVersion: #maybe we could use the oldest version (2.0.2) in core and then call the recipe for updating the log4j dependency?
+
+      #Version 2
+      # We may call org.openrewrite.java.logging.log4j.Log4j1ToLog4j2 - which will be even more accurate and
+      # after that we may call this org.openrewrite.java.logging.log4j.UpgradeLog4J2DependencyVersion to get the newest version?

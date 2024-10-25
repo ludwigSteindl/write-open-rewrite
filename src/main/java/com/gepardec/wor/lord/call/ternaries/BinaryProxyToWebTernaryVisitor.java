@@ -1,7 +1,6 @@
 package com.gepardec.wor.lord.call.ternaries;
 
 import com.gepardec.wor.lord.common.Accumulator;
-import com.gepardec.wor.lord.common.search.WSDLTypesSearch;
 import com.gepardec.wor.lord.util.LSTUtil;
 import org.jetbrains.annotations.NotNull;
 import org.openrewrite.Cursor;
@@ -49,7 +48,7 @@ public class BinaryProxyToWebTernaryVisitor extends JavaVisitor<ExecutionContext
         if (serviceAlias.isEmpty()) {
             return method;
         }
-        doAfterVisit(new BinaryProxyToWebConfigClassVisitor());
+        doAfterVisit(new AddUseWebFlagToConfigClassVisitor());
 
         J.Block surrounding = getCursor().getParent().firstEnclosingOrThrow(J.Block.class);
         Optional<J.MethodInvocation> requestSetter = surrounding.getStatements()

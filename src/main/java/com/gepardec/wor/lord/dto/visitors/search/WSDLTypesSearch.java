@@ -6,16 +6,13 @@ import com.gepardec.wor.lord.dto.common.Wsdl2JavaService;
 import com.gepardec.wor.lord.util.LSTUtil;
 import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.JAXBElement;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -136,7 +133,6 @@ public class WSDLTypesSearch extends JavaIsoVisitor<ExecutionContext> {
 
     private static List<Accessor> createAccessors(List<JavaType.Method> methods, Accessor parent, String rootName) {
         Optional<Accessor> filteredParent = removeRootParent(parent, rootName);
-        JAXBElement<String> elem = new JAXBElement<>(null, String.class, "a");
 
         List<Accessor> accessors = extractMethodsNotReturningSubDtos(methods, filteredParent);
 

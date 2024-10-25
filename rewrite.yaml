@@ -1,5 +1,0 @@
-type: specs.openrewrite.org/v1beta/recipe
-name: com.gepardec.wor.lord.Java17To11
-recipeList:
-  - org.openrewrite.java.migrate.lang.UseTextBlocks
-  - org.openrewrite.staticanalysis.InstanceOfPatternMatch

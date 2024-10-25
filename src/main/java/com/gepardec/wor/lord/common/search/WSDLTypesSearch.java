@@ -48,7 +48,7 @@ public class WSDLTypesSearch extends JavaIsoVisitor<ExecutionContext> {
             return classDeclaration;
         }
 
-        addAccesssorsToAccumulator(classDeclaration);
+        addAccessorsToAccumulator(classDeclaration);
 
         return classDeclaration;
     }
@@ -61,7 +61,7 @@ public class WSDLTypesSearch extends JavaIsoVisitor<ExecutionContext> {
         return classDeclaration.getType().getPackageName().startsWith(PACKAGE_PREFIX);
     }
 
-    private void addAccesssorsToAccumulator(J.ClassDeclaration classDeclaration) {
+    private void addAccessorsToAccumulator(J.ClassDeclaration classDeclaration) {
         List<Accessor> accessors = LSTUtil.extractStatementsOfType(classDeclaration.getBody().getStatements(), J.MethodDeclaration.class)
                 .stream()
                 .map(methodDeclaration -> Accessor

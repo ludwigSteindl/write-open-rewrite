@@ -53,6 +53,8 @@ jobs:
           java-version: 17
       - name: publish-snapshots
         uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: current
         if: github.event_name == 'push'
         timeout-minutes: 30
         with:

@@ -35,7 +35,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: current
-          arguments: ${{ env.GRADLE_SWITCHES }} build test
+          arguments: ${{ env.GRADLE_SWITCHES }} init build test
       - name: verify
         run: mvn --show-version --no-transfer-progress --update-snapshots --fail-at-end --batch-mode -Dstyle.color=always verify
 
